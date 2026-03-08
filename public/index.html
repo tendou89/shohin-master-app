@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>商品マスター管理</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  <link href="/css/style.css" rel="stylesheet">
+</head>
+<body>
+
+<!-- ナビゲーション -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+  <div class="container-fluid px-4">
+    <a class="navbar-brand fw-bold" href="#"><i class="bi bi-box-seam me-2"></i>商品マスター管理</a>
+    <div class="navbar-nav ms-auto flex-row gap-2">
+      <button class="btn btn-outline-light btn-sm" onclick="showPage('list')"><i class="bi bi-list-ul me-1"></i>商品一覧</button>
+      <button class="btn btn-light btn-sm" onclick="showPage('register')"><i class="bi bi-plus-circle me-1"></i>新規登録</button>
+      <button class="btn btn-success btn-sm" onclick="showPage('csv-import')"><i class="bi bi-file-earmark-spreadsheet me-1"></i>CSV登録</button>
+      <button class="btn btn-warning btn-sm text-dark" onclick="showPage('pamphlet')"><i class="bi bi-file-earmark-richtext me-1"></i>パンフレット</button>
+      <button class="btn btn-outline-light btn-sm" onclick="showPage('category')"><i class="bi bi-tags me-1"></i>カテゴリ</button>
+    </div>
+  </div>
+</nav>
+
+<div class="container-fluid px-4 py-3">
+
+  <!-- ========== 商品一覧 ========== -->
+  <div id="page-list">
+    <div class="d-flex align-items-center mb-3 gap-3 flex-wrap">
+      <h4 class="mb-0 fw-bold text-primary"><i class="bi bi-list-ul me-2"></i>商品一覧</h4>
+      <div class="d-flex gap-2 ms-auto flex-wrap">
+        <select id="filter-category" class="form-select form-select-sm" style="width:140px" onchange="loadProducts()">
+          <option value="">全カテゴリ</option>
+        </select>
+        <input id="filter-keyword" type="text" class="form-control form-control-sm" placeholder="キーワード検索..." style="width:200px" oninput="loadProducts()">
+        <button class="btn btn-outline-secondary btn-sm" onclick="clearFilter()"><i class="bi bi-x-circle"></i> クリア</button>
+      </div>
+    </div>
+    <div class="card shadow-sm">
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-hover mb-0 align-middle">
+            <thead class="table-primary">
+              <tr>
+                <th>商品コード</th>
+                <th>商品名</th>
+                <th>カテゴリ</th>
+                <th class="text-end">定価</th>
+                <th>内容量</th>
+                <th>JANコード</th>
+                <th class="text-center">操作</th>
+              </tr>
+            </thead>
+            <tbody id="product-table-body">
+              <tr><td colspan="7" class="text-center py-4 text-muted">読み込み中...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    <div id="product-count" class="text-muted small mt-2"></div>
+  </div>
+
+  <!-- ========== 商品登録 ========== -->
+  <div id="page-register" class="d-none">
+    <h4 class="fw-bold text-primary mb-3"><i class="bi bi-plus-circle me-2"></i>商品登録</h4>
+    <div class="card shadow-sm" style="max-width:700px">
+      <div class="card-body">
+        <div id="register-alert"></div>
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label class="form-label fw-semibold">商品コード <span class="text-danger">*</span></label>
+            <input id="reg-code" type="text" class="form-control" placeholder="例：A001" maxlength="20">
+            <div class="form-text">半角英数字・最大20文字</div>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label fw-semibold">カテゴリ <span class="text-danger">*</span></label>
+            <select id="reg-category" class="form-select"></select>
+          </div>
+          <div class="col-12">
+            <label class="form-label fw-semibold">商品名 <span class="text-danger">*</span></label>
+            <input id="reg-name" type="text" class="form-control" placeholder="商品名を入力" maxlength="100">
+          </div>
+          <div class="col-md-4">
+            <label class="form-label fw-semibold">定価（円） <span class="text-danger">*</span></label>
+            <input id="reg-price" type="number" class="form-control" placeholder="0" min="0">
+          </div>
+          <div class="col-md-4">
+            <label class="form-label fw-semibold">内容量</label>
+            <input id="reg-volume" type="text" class="form-control" placeholder="例：500ml">
+          </div>
+          <div class="col-md-4">
+            <label class="form-label fw-semibold">JANコード</label>
+            <input id="reg-jan" type="text" class="form-control" placeholder="13桁数字" maxlength="13">
+          </div>
+          <div class="col-12">
+            <label class="form-label fw-semibold">説明文</label>
+            <textarea id="reg-description" class="form-control" rows="4" placeholder="商品の説明を入力..." maxlength="1000"></textarea>
+          </div>
+        </div>
+        <div class="mt-4 d-flex gap-2">
+          <button class="btn btn-primary px-4" onclick="registerProduct()"><i class="bi bi-check-circle me-1"></i>登録する</button>
+          <button class="btn btn-outline-secondary" onclick="showPage('list')">キャンセル</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== 商品詳細・編集 ========== -->
+  <div id="page-detail" class="d-none">
+    <div class="d-flex align-items-center gap-3 mb-3">
+      <h4 class="fw-bold text-primary mb-0"><i class="bi bi-pencil-square me-2"></i>商品詳細・編集</h4>
+      <button class="btn btn-outline-secondary btn-sm ms-auto" onclick="showPage('list')"><i class="bi bi-arrow-left me-1"></i>一覧に戻る</button>
+    </div>
+    <div class="row g-4" style="max-width:900px">
+      <!-- 画像カード -->
+      <div class="col-md-4">
+        <div class="card shadow-sm h-100">
+          <div class="card-body text-center d-flex flex-column align-items-center justify-content-center">
+            <img id="detail-image" src="" alt="商品画像" class="img-fluid rounded mb-3 product-thumbnail" style="max-height:200px;display:none">
+            <div id="detail-image-placeholder" class="image-placeholder mb-3">
+              <i class="bi bi-image text-muted" style="font-size:3rem"></i>
+              <div class="text-muted small mt-1">画像未登録</div>
+            </div>
+            <label class="btn btn-outline-primary btn-sm w-100">
+              <i class="bi bi-upload me-1"></i>画像をアップロード
+              <input type="file" id="image-upload" accept="image/jpeg,image/png,image/gif,image/webp" class="d-none" onchange="uploadImage()">
+            </label>
+            <div id="upload-msg" class="mt-2 small"></div>
+          </div>
+        </div>
+      </div>
+      <!-- フォームカード -->
+      <div class="col-md-8">
+        <div class="card shadow-sm">
+          <div class="card-body">
+            <div id="detail-alert"></div>
+            <div class="row g-3">
+              <div class="col-md-6">
+                <label class="form-label fw-semibold">商品コード</label>
+                <input id="edit-code" type="text" class="form-control" readonly>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label fw-semibold">カテゴリ <span class="text-danger">*</span></label>
+                <select id="edit-category" class="form-select"></select>
+              </div>
+              <div class="col-12">
+                <label class="form-label fw-semibold">商品名 <span class="text-danger">*</span></label>
+                <input id="edit-name" type="text" class="form-control" maxlength="100">
+              </div>
+              <div class="col-md-4">
+                <label class="form-label fw-semibold">定価（円）</label>
+                <input id="edit-price" type="number" class="form-control" min="0">
+              </div>
+              <div class="col-md-4">
+                <label class="form-label fw-semibold">内容量</label>
+                <input id="edit-volume" type="text" class="form-control">
+              </div>
+              <div class="col-md-4">
+                <label class="form-label fw-semibold">JANコード</label>
+                <input id="edit-jan" type="text" class="form-control" maxlength="13">
+              </div>
+              <div class="col-12">
+                <label class="form-label fw-semibold">説明文</label>
+                <textarea id="edit-description" class="form-control" rows="4" maxlength="1000"></textarea>
+              </div>
+            </div>
+            <div class="mt-3 d-flex gap-2">
+              <button class="btn btn-primary" onclick="updateProduct()"><i class="bi bi-save me-1"></i>保存する</button>
+              <button class="btn btn-danger ms-auto" onclick="deleteProduct()"><i class="bi bi-trash me-1"></i>削除</button>
+            </div>
+            <div class="text-muted small mt-2" id="detail-timestamps"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== パンフレット選択 ========== -->
+  <div id="page-pamphlet" class="d-none">
+    <h4 class="fw-bold text-warning mb-1"><i class="bi bi-file-earmark-richtext me-2"></i>パンフレット作成</h4>
+    <p class="text-muted small mb-3">商品を最大6点まで選択してプレビューを生成します</p>
+    <div class="row g-4">
+      <div class="col-md-5">
+        <div class="card shadow-sm">
+          <div class="card-header bg-light fw-semibold">商品を選択</div>
+          <div class="card-body p-2">
+            <input id="pamphlet-filter" type="text" class="form-control form-control-sm mb-2" placeholder="商品名・コードで絞り込み" oninput="filterPamphletList()">
+            <div id="pamphlet-product-list" style="max-height:350px;overflow-y:auto"></div>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-7">
+        <div class="card shadow-sm">
+          <div class="card-header bg-warning-subtle fw-semibold d-flex justify-content-between align-items-center">
+            <span>選択済み商品 <span id="selected-count" class="badge bg-warning text-dark">0</span>件</span>
+            <button class="btn btn-primary btn-sm" onclick="generatePamphlet()"><i class="bi bi-eye me-1"></i>プレビュー生成</button>
+          </div>
+          <div class="card-body p-2">
+            <div id="selected-products-list" class="text-muted small p-2">商品が選択されていません</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== パンフレットプレビュー ========== -->
+  <div id="page-preview" class="d-none">
+    <div class="d-flex align-items-center gap-2 mb-3">
+      <h4 class="fw-bold mb-0"><i class="bi bi-eye me-2"></i>パンフレットプレビュー</h4>
+      <button class="btn btn-outline-secondary btn-sm ms-auto" onclick="showPage('pamphlet')"><i class="bi bi-arrow-left me-1"></i>戻る</button>
+      <button class="btn btn-primary btn-sm" onclick="printPamphlet()"><i class="bi bi-printer me-1"></i>印刷・PDF保存</button>
+    </div>
+    <div id="pamphlet-preview-area"></div>
+  </div>
+
+  <!-- ========== カテゴリ管理 ========== -->
+  <div id="page-category" class="d-none">
+    <h4 class="fw-bold text-primary mb-3"><i class="bi bi-tags me-2"></i>カテゴリ管理</h4>
+    <div class="row g-4">
+      <div class="col-md-4">
+        <div class="card shadow-sm">
+          <div class="card-header bg-light fw-semibold">カテゴリ追加</div>
+          <div class="card-body">
+            <div id="cat-alert"></div>
+            <input id="cat-name" type="text" class="form-control mb-2" placeholder="カテゴリ名">
+            <input id="cat-order" type="number" class="form-control mb-3" placeholder="表示順（数字）" min="1">
+            <button class="btn btn-primary w-100" onclick="addCategory()"><i class="bi bi-plus-circle me-1"></i>追加</button>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-8">
+        <div class="card shadow-sm">
+          <div class="card-header bg-light fw-semibold">カテゴリ一覧</div>
+          <div class="card-body p-0">
+            <table class="table table-hover mb-0 align-middle">
+              <thead class="table-light"><tr><th>カテゴリ名</th><th>表示順</th><th class="text-center">操作</th></tr></thead>
+              <tbody id="category-table-body"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Toast通知 -->
+<div class="toast-container position-fixed bottom-0 end-0 p-3">
+  <div id="app-toast" class="toast" role="alert">
+    <div class="toast-header">
+      <i class="bi bi-info-circle-fill text-primary me-2"></i>
+      <strong class="me-auto">通知</strong>
+      <button type="button" class="btn-close" data-bs-dismiss="toast"></button>
+    </div>
+    <div class="toast-body" id="toast-body"></div>
+  </div>
+</div>
+
+<!-- 削除確認モーダル -->
+<div class="modal fade" id="deleteModal" tabindex="-1">
+  <div class="modal-dialog modal-sm">
+    <div class="modal-content">
+      <div class="modal-header bg-danger text-white">
+        <h5 class="modal-title"><i class="bi bi-exclamation-triangle me-2"></i>削除確認</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body" id="delete-modal-body">この商品を削除しますか？</div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">キャンセル</button>
+        <button type="button" class="btn btn-danger btn-sm" id="confirm-delete-btn">削除する</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+  <!-- ========== CSV一括登録 ========== -->
+  <div id="page-csv-import" class="d-none">
+    <div class="d-flex align-items-center mb-3 gap-3">
+      <h4 class="mb-0 fw-bold text-success"><i class="bi bi-file-earmark-spreadsheet me-2"></i>CSV一括登録</h4>
+    </div>
+
+    <!-- 説明カード -->
+    <div class="card shadow-sm mb-4">
+      <div class="card-header bg-success text-white fw-bold">
+        <i class="bi bi-info-circle me-1"></i>CSVファイルの形式について
+      </div>
+      <div class="card-body">
+        <p class="mb-2">以下のヘッダー行を1行目に記載したCSVファイルをアップロードしてください。</p>
+        <div class="bg-light rounded p-3 mb-3" style="font-family:monospace; font-size:0.85rem;">
+          商品コード,商品名,カテゴリ,定価,内容量,JANコード,説明文
+        </div>
+        <ul class="mb-3 small text-muted">
+          <li><strong>商品コード</strong>（必須）：半角英数字・20文字以内</li>
+          <li><strong>商品名</strong>（必須）：商品の名前</li>
+          <li>カテゴリ・定価・内容量・JANコード・説明文は任意入力</li>
+          <li>既に登録済みの商品コードはスキップされます（既存データを優先）</li>
+          <li>CSVに存在しないカテゴリは自動で作成されます</li>
+          <li>文字コードは <strong>UTF-8</strong> で保存してください</li>
+        </ul>
+        <button class="btn btn-outline-success btn-sm" onclick="downloadCsvTemplate()">
+          <i class="bi bi-download me-1"></i>CSVテンプレートをダウンロード
+        </button>
+      </div>
+    </div>
+
+    <!-- アップロードエリア -->
+    <div class="card shadow-sm mb-4">
+      <div class="card-header fw-bold"><i class="bi bi-upload me-1"></i>CSVファイルを選択</div>
+      <div class="card-body">
+        <div id="csv-drop-area" class="border border-2 border-dashed border-success rounded p-5 text-center mb-3"
+          style="cursor:pointer; background:#f8fff8;"
+          onclick="document.getElementById('csv-file-input').click()"
+          ondragover="event.preventDefault(); this.style.background='#e8f5e9'"
+          ondragleave="this.style.background='#f8fff8'"
+          ondrop="handleCsvDrop(event)">
+          <i class="bi bi-file-earmark-spreadsheet text-success" style="font-size:3rem;"></i>
+          <p class="mt-2 mb-0 text-muted">クリックまたはCSVファイルをここにドラッグ＆ドロップ</p>
+          <p class="small text-muted">対応形式：.csv（最大10MB）</p>
+        </div>
+        <input type="file" id="csv-file-input" accept=".csv" class="d-none" onchange="handleCsvFileSelect(event)">
+        <div id="csv-file-name" class="text-muted small mb-3"></div>
+        <button class="btn btn-success px-4" onclick="importCsv()" id="csv-import-btn" disabled>
+          <i class="bi bi-cloud-upload me-1"></i>登録する
+        </button>
+      </div>
+    </div>
+
+    <!-- 結果表示エリア -->
+    <div id="csv-result" class="d-none">
+      <div class="card shadow-sm mb-3">
+        <div class="card-header fw-bold bg-light"><i class="bi bi-clipboard-check me-1"></i>登録結果</div>
+        <div class="card-body">
+          <div id="csv-result-summary" class="mb-3"></div>
+          <div id="csv-success-area" class="d-none mb-3">
+            <h6 class="text-success"><i class="bi bi-check-circle me-1"></i>登録成功</h6>
+            <div id="csv-success-list" class="bg-light rounded p-2 small" style="max-height:150px;overflow-y:auto;"></div>
+          </div>
+          <div id="csv-error-area" class="d-none">
+            <h6 class="text-danger"><i class="bi bi-exclamation-triangle me-1"></i>エラー・スキップ</h6>
+            <div id="csv-error-list" class="bg-light rounded p-2 small" style="max-height:200px;overflow-y:auto;"></div>
+          </div>
+        </div>
+      </div>
+      <button class="btn btn-primary btn-sm" onclick="showPage('list')">
+        <i class="bi bi-list-ul me-1"></i>商品一覧を確認する
+      </button>
+    </div>
+  </div>
+<script src="/js/app.js"></script>
+</body>
+</html>
