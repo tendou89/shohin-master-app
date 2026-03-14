@@ -433,9 +433,11 @@ function renderPamphletPreview(products, itemsPerPage = 6) {
       </div>`;
   }
 
+  // 1ページあたりの件数から列数を決定（全ページ統一）
+  const cols = itemsPerPage <= 6 ? 2 : 3;
+  const gridClass = `pamphlet-grid pamphlet-grid-${cols}col`;
+
   const pagesHtml = pamphletPages.map((pageProducts, pageIndex) => {
-    const cols = pageProducts.length <= 6 ? 2 : 3;
-    const gridClass = `pamphlet-grid pamphlet-grid-${cols}col`;
     const itemsHtml = pageProducts.map(makeItemHtml).join('');
     const pageLabel = pamphletPages.length > 1 ? `（${pageIndex + 1}ページ / 全${pamphletPages.length}ページ）` : '';
     return `
