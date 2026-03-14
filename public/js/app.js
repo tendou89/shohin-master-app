@@ -434,12 +434,12 @@ function renderPamphletPreview(products, itemsPerPage = 6) {
   }
 
   const pagesHtml = pamphletPages.map((pageProducts, pageIndex) => {
-    const isSingle = pageProducts.length === 1;
     const cols = pageProducts.length <= 6 ? 2 : 3;
+    const gridClass = `pamphlet-grid pamphlet-grid-${cols}col`;
     const itemsHtml = pageProducts.map(makeItemHtml).join('');
     const pageLabel = pamphletPages.length > 1 ? `（${pageIndex + 1}ページ / 全${pamphletPages.length}ページ）` : '';
     return `
-      <div class="pamphlet-page ${isSingle ? 'pamphlet-single' : ''}" data-cols="${cols}">
+      <div class="pamphlet-page" data-cols="${cols}">
         <div class="pamphlet-header d-flex justify-content-between align-items-end">
           <div>
             <div class="text-muted small mb-1">商品情報 ${pageLabel}</div>
@@ -447,7 +447,7 @@ function renderPamphletPreview(products, itemsPerPage = 6) {
           </div>
           <div class="text-muted small">${today}</div>
         </div>
-        <div class="${isSingle ? 'pamphlet-single' : `pamphlet-grid pamphlet-grid-${cols}col`}">
+        <div class="${gridClass}">
           ${itemsHtml}
         </div>
         <div class="mt-4 pt-3 border-top text-muted" style="font-size:0.72rem">
