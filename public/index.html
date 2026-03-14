@@ -115,7 +115,6 @@
       <button class="btn btn-outline-secondary btn-sm ms-auto" onclick="showPage('list')"><i class="bi bi-arrow-left me-1"></i>一覧に戻る</button>
     </div>
     <div class="row g-4" style="max-width:900px">
-      <!-- 画像カード -->
       <div class="col-md-4">
         <div class="card shadow-sm h-100">
           <div class="card-body text-center d-flex flex-column align-items-center justify-content-center">
@@ -132,7 +131,6 @@
           </div>
         </div>
       </div>
-      <!-- フォームカード -->
       <div class="col-md-8">
         <div class="card shadow-sm">
           <div class="card-body">
@@ -181,11 +179,31 @@
   <!-- ========== パンフレット選択 ========== -->
   <div id="page-pamphlet" class="d-none">
     <h4 class="fw-bold text-warning mb-1"><i class="bi bi-file-earmark-richtext me-2"></i>パンフレット作成</h4>
-    <p class="text-muted small mb-3">商品を最大6点まで選択してプレビューを生成します</p>
+    <p class="text-muted small mb-3">商品を選択してプレビューを生成します</p>
+
+    <!-- おすすめセット -->
+    <div class="card shadow-sm mb-3 border-warning">
+      <div class="card-header bg-warning-subtle fw-semibold d-flex justify-content-between align-items-center">
+        <span><i class="bi bi-star-fill text-warning me-1"></i>おすすめセットから選ぶ</span>
+        <button class="btn btn-outline-secondary btn-sm" onclick="showPage('pamphlet-sets')"><i class="bi bi-gear me-1"></i>セット管理</button>
+      </div>
+      <div class="card-body py-2">
+        <div id="pamphlet-set-buttons" class="d-flex flex-wrap gap-2">
+          <div class="text-muted small">読み込み中...</div>
+        </div>
+      </div>
+    </div>
+
     <div class="row g-4">
       <div class="col-md-5">
         <div class="card shadow-sm">
-          <div class="card-header bg-light fw-semibold">商品を選択</div>
+          <div class="card-header bg-light fw-semibold d-flex justify-content-between align-items-center">
+            <span>商品を選択</span>
+            <div class="d-flex gap-1">
+              <button class="btn btn-outline-primary btn-sm" onclick="selectAllPamphlet()" title="全て選択"><i class="bi bi-check-all me-1"></i>全選択</button>
+              <button class="btn btn-outline-secondary btn-sm" onclick="deselectAllPamphlet()" title="全て解除"><i class="bi bi-x-circle me-1"></i>解除</button>
+            </div>
+          </div>
           <div class="card-body p-2">
             <input id="pamphlet-filter" type="text" class="form-control form-control-sm mb-2" placeholder="商品名・コードで絞り込み" oninput="filterPamphletList()">
             <div id="pamphlet-product-list" style="max-height:350px;overflow-y:auto"></div>
@@ -245,6 +263,60 @@
     </div>
   </div>
 
+  <!-- ========== おすすめセット管理 ========== -->
+  <div id="page-pamphlet-sets" class="d-none">
+    <div class="d-flex align-items-center gap-3 mb-3">
+      <h4 class="mb-0 fw-bold text-warning"><i class="bi bi-star-fill me-2"></i>おすすめセット管理</h4>
+      <button class="btn btn-outline-secondary btn-sm ms-auto" onclick="showPage('pamphlet')"><i class="bi bi-arrow-left me-1"></i>パンフレット作成に戻る</button>
+    </div>
+    <div class="row g-4">
+      <!-- 登録フォーム -->
+      <div class="col-md-5">
+        <div class="card shadow-sm">
+          <div class="card-header bg-warning-subtle fw-semibold">
+            <i class="bi bi-plus-circle me-1"></i>セットを登録・編集
+          </div>
+          <div class="card-body">
+            <div id="set-alert"></div>
+            <div class="mb-3">
+              <label class="form-label fw-semibold">セット名 <span class="text-danger">*</span></label>
+              <input id="set-name-input" type="text" class="form-control" placeholder="例：スモッちシリーズ、夏のおすすめ">
+            </div>
+            <div class="mb-3">
+              <label class="form-label fw-semibold">含める商品 <span class="text-danger">*</span></label>
+              <div id="set-product-checkboxes" style="max-height:300px;overflow-y:auto;border:1px solid #dee2e6;border-radius:6px;padding:10px;">
+                <div class="text-muted small">読み込み中...</div>
+              </div>
+            </div>
+            <div class="d-flex gap-2">
+              <button class="btn btn-warning px-4" id="set-save-btn" onclick="savePamphletSet()"><i class="bi bi-save me-1"></i>保存する</button>
+              <button class="btn btn-outline-secondary" onclick="cancelSetEdit()">キャンセル</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- セット一覧 -->
+      <div class="col-md-7">
+        <div class="card shadow-sm">
+          <div class="card-header bg-light fw-semibold">登録済みおすすめセット</div>
+          <div class="card-body p-0">
+            <table class="table table-hover mb-0 align-middle">
+              <thead class="table-light">
+                <tr><th>セット名</th><th>含まれる商品</th><th class="text-center">操作</th></tr>
+              </thead>
+              <tbody id="pamphlet-sets-tbody">
+                <tr><td colspan="3" class="text-center text-muted py-3">読み込み中...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div class="text-muted small mt-2">
+          <i class="bi bi-info-circle me-1"></i>セットはパンフレット作成画面のボタンから1クリックで適用できます
+        </div>
+      </div>
+    </div>
+  </div>
+
 </div>
 
 <!-- Toast通知 -->
@@ -282,7 +354,6 @@
       <h4 class="mb-0 fw-bold text-success"><i class="bi bi-file-earmark-spreadsheet me-2"></i>CSV一括登録</h4>
     </div>
 
-    <!-- 説明カード -->
     <div class="card shadow-sm mb-4">
       <div class="card-header bg-success text-white fw-bold">
         <i class="bi bi-info-circle me-1"></i>CSVファイルの形式について
@@ -306,7 +377,6 @@
       </div>
     </div>
 
-    <!-- アップロードエリア -->
     <div class="card shadow-sm mb-4">
       <div class="card-header fw-bold"><i class="bi bi-upload me-1"></i>CSVファイルを選択</div>
       <div class="card-body">
@@ -328,7 +398,6 @@
       </div>
     </div>
 
-    <!-- 結果表示エリア -->
     <div id="csv-result" class="d-none">
       <div class="card shadow-sm mb-3">
         <div class="card-header fw-bold bg-light"><i class="bi bi-clipboard-check me-1"></i>登録結果</div>
@@ -349,6 +418,8 @@
       </button>
     </div>
   </div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script src="/js/app.js"></script>
 </body>
 </html>
