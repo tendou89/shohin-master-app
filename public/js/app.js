@@ -6,9 +6,11 @@ let allCategories = [];
 let currentEditCode = null;
 let pamphletSelected = []; // { product_code, product_name }
 let pamphletAllProducts = [];
+let allPamphletSets = [];
+let editingSetId = null; // おすすめセット編集中のID
 
 // ===== ページ切替 =====
-const pages = ['list', 'register', 'detail', 'pamphlet', 'preview', 'category', 'csv-import'];
+const pages = ['list', 'register', 'detail', 'pamphlet', 'preview', 'category', 'csv-import', 'pamphlet-sets'];
 function showPage(name) {
   pages.forEach(p => {
     const el = document.getElementById(`page-${p}`);
@@ -19,6 +21,7 @@ function showPage(name) {
   if (name === 'pamphlet') { loadPamphletPage(); }
   if (name === 'category') loadCategories();
   if (name === 'csv-import') resetCsvImport();
+  if (name === 'pamphlet-sets') loadPamphletSetsPage();
 }
 
 // ===== API共通 =====
@@ -276,6 +279,12 @@ async function loadPamphletPage() {
     pamphletAllProducts = res.data;
     renderPamphletProductList(pamphletAllProducts);
   }
+  // おすすめセット読み込み
+  const setsRes = await api('GET', '/api/pamphlet-sets');
+  if (setsRes.success) {
+    allPamphletSets = setsRes.data;
+    renderPamphletSetButtons();
+  }
   renderSelectedList();
 }
 
@@ -302,6 +311,28 @@ function renderPamphletProductList(products) {
   }).join('');
 }
 
+// ===== 全選択・全解除 =====
+function selectAllPamphlet() {
+  const q = document.getElementById('pamphlet-filter').value.toLowerCase();
+  const targets = q
+    ? pamphletAllProducts.filter(p =>
+        p.product_name.toLowerCase().includes(q) || p.product_code.toLowerCase().includes(q))
+    : pamphletAllProducts;
+  targets.forEach(p => {
+    if (!pamphletSelected.some(s => s.product_code === p.product_code)) {
+      pamphletSelected.push({ product_code: p.product_code, product_name: p.product_name });
+    }
+  });
+  renderSelectedList();
+  renderPamphletProductList(targets);
+}
+
+function deselectAllPamphlet() {
+  pamphletSelected = [];
+  renderSelectedList();
+  filterPamphletList();
+}
+
 function togglePamphletSelect(code, name) {
   const idx = pamphletSelected.findIndex(s => s.product_code === code);
   if (idx >= 0) {
@@ -310,12 +341,10 @@ function togglePamphletSelect(code, name) {
     pamphletSelected.push({ product_code: code, product_name: name });
   }
   renderSelectedList();
-  filterPamphletList();
-  document.getElementById('pamphlet-filter').dispatchEvent(new Event('input'));
-  renderPamphletProductList(pamphletAllProducts.filter(p => {
-    const q = document.getElementById('pamphlet-filter').value.toLowerCase();
-    return p.product_name.toLowerCase().includes(q) || p.product_code.toLowerCase().includes(q);
-  }));
+  const q = document.getElementById('pamphlet-filter').value.toLowerCase();
+  renderPamphletProductList(pamphletAllProducts.filter(p =>
+    p.product_name.toLowerCase().includes(q) || p.product_code.toLowerCase().includes(q)
+  ));
 }
 
 function renderSelectedList() {
@@ -334,6 +363,35 @@ function renderSelectedList() {
     </div>`).join('');
 }
 
+// ===== おすすめセットボタン表示 =====
+function renderPamphletSetButtons() {
+  const el = document.getElementById('pamphlet-set-buttons');
+  if (!el) return;
+  if (!allPamphletSets.length) {
+    el.innerHTML = '<div class="text-muted small">おすすめセットがまだありません。<a href="#" onclick="showPage(\'pamphlet-sets\')">管理画面</a>で登録してください。</div>';
+    return;
+  }
+  el.innerHTML = allPamphletSets.map(s => `
+    <button class="btn btn-outline-warning btn-sm" onclick="applyPamphletSet(${s.id})">
+      <i class="bi bi-star-fill me-1"></i>${esc(s.set_name)}
+    </button>`).join('');
+}
+
+function applyPamphletSet(id) {
+  const set = allPamphletSets.find(s => s.id === id);
+  if (!set) return;
+  let codes;
+  try { codes = JSON.parse(set.product_codes); } catch(e) { return; }
+  pamphletSelected = [];
+  codes.forEach(code => {
+    const p = pamphletAllProducts.find(p => p.product_code === code);
+    if (p) pamphletSelected.push({ product_code: p.product_code, product_name: p.product_name });
+  });
+  renderSelectedList();
+  filterPamphletList();
+  showToast(`「${set.set_name}」を適用しました`);
+}
+
 // ===== パンフレット生成 =====
 async function generatePamphlet() {
   if (!pamphletSelected.length) return showToast('商品を選択してください', 'danger');
@@ -347,15 +405,13 @@ async function generatePamphlet() {
 function renderPamphletPreview(products) {
   const area = document.getElementById('pamphlet-preview-area');
   const today = new Date().toLocaleDateString('ja-JP', { year: 'numeric', month: 'long', day: 'numeric' });
-  const ITEMS_PER_PAGE = 6; // 1ページあたり6商品
+  const ITEMS_PER_PAGE = 6;
 
-  // 商品を6件ずつのページに分割
   const pamphletPages = [];
   for (let i = 0; i < products.length; i += ITEMS_PER_PAGE) {
     pamphletPages.push(products.slice(i, i + ITEMS_PER_PAGE));
   }
 
-  // 商品カードのHTML生成
   function makeItemHtml(p) {
     const tax = Math.round(p.price * 1.1);
     const imgHtml = p.image_path
@@ -376,7 +432,6 @@ function renderPamphletPreview(products) {
       </div>`;
   }
 
-  // ページごとにHTMLを生成
   const pagesHtml = pamphletPages.map((pageProducts, pageIndex) => {
     const isSingle = pageProducts.length === 1;
     const itemsHtml = pageProducts.map(makeItemHtml).join('');
@@ -404,6 +459,118 @@ function renderPamphletPreview(products) {
 
 function printPamphlet() {
   window.print();
+}
+
+// ===== おすすめセット管理画面 =====
+async function loadPamphletSetsPage() {
+  if (!allCategories.length) await loadCategories();
+  const res = await api('GET', '/api/products');
+  if (res.success) pamphletAllProducts = res.data;
+  const setsRes = await api('GET', '/api/pamphlet-sets');
+  if (setsRes.success) allPamphletSets = setsRes.data;
+  renderPamphletSetsTable();
+  renderSetProductCheckboxes();
+  editingSetId = null;
+  document.getElementById('set-name-input').value = '';
+  document.getElementById('set-alert').innerHTML = '';
+  document.getElementById('set-save-btn').textContent = '保存する';
+}
+
+function renderPamphletSetsTable() {
+  const tbody = document.getElementById('pamphlet-sets-tbody');
+  if (!allPamphletSets.length) {
+    tbody.innerHTML = '<tr><td colspan="3" class="text-center text-muted py-3">おすすめセットがありません</td></tr>';
+    return;
+  }
+  tbody.innerHTML = allPamphletSets.map(s => {
+    let codes = [];
+    try { codes = JSON.parse(s.product_codes); } catch(e) {}
+    const names = codes.map(code => {
+      const p = pamphletAllProducts.find(p => p.product_code === code);
+      return p ? esc(p.product_name) : `(${esc(code)})`;
+    }).join('、');
+    return `<tr>
+      <td class="fw-semibold">${esc(s.set_name)}</td>
+      <td class="small text-muted">${names || '−'}</td>
+      <td class="text-center" style="white-space:nowrap">
+        <button class="btn btn-outline-primary btn-sm me-1" onclick="editPamphletSet(${s.id})"><i class="bi bi-pencil"></i> 編集</button>
+        <button class="btn btn-outline-danger btn-sm" onclick="deletePamphletSet(${s.id}, '${esc(s.set_name)}')"><i class="bi bi-trash"></i></button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function renderSetProductCheckboxes() {
+  const el = document.getElementById('set-product-checkboxes');
+  if (!pamphletAllProducts.length) {
+    el.innerHTML = '<div class="text-muted small">商品がありません</div>';
+    return;
+  }
+  el.innerHTML = pamphletAllProducts.map(p => `
+    <div class="form-check">
+      <input class="form-check-input set-product-check" type="checkbox" value="${esc(p.product_code)}" id="set-chk-${esc(p.product_code)}">
+      <label class="form-check-label small" for="set-chk-${esc(p.product_code)}">
+        <span class="fw-semibold">${esc(p.product_name)}</span>
+        <span class="text-muted ms-1">(${esc(p.product_code)})</span>
+      </label>
+    </div>`).join('');
+}
+
+function editPamphletSet(id) {
+  const set = allPamphletSets.find(s => s.id === id);
+  if (!set) return;
+  editingSetId = id;
+  document.getElementById('set-name-input').value = set.set_name;
+  let codes = [];
+  try { codes = JSON.parse(set.product_codes); } catch(e) {}
+  document.querySelectorAll('.set-product-check').forEach(chk => {
+    chk.checked = codes.includes(chk.value);
+  });
+  document.getElementById('set-save-btn').textContent = '更新する';
+  document.getElementById('set-alert').innerHTML = '';
+  document.getElementById('set-name-input').scrollIntoView({ behavior: 'smooth' });
+}
+
+async function savePamphletSet() {
+  const name = document.getElementById('set-name-input').value.trim();
+  const codes = Array.from(document.querySelectorAll('.set-product-check:checked')).map(c => c.value);
+  if (!name) return showAlert('set-alert', 'セット名を入力してください');
+  if (!codes.length) return showAlert('set-alert', '商品を1つ以上選択してください');
+
+  let res;
+  if (editingSetId) {
+    res = await api('PUT', `/api/pamphlet-sets/${editingSetId}`, { set_name: name, product_codes: codes });
+  } else {
+    res = await api('POST', '/api/pamphlet-sets', { set_name: name, product_codes: codes });
+  }
+  if (!res.success) return showAlert('set-alert', res.message);
+  showToast(editingSetId ? 'おすすめセットを更新しました' : 'おすすめセットを登録しました');
+  editingSetId = null;
+  document.getElementById('set-name-input').value = '';
+  document.getElementById('set-save-btn').textContent = '保存する';
+  document.querySelectorAll('.set-product-check').forEach(chk => chk.checked = false);
+  document.getElementById('set-alert').innerHTML = '';
+  const setsRes = await api('GET', '/api/pamphlet-sets');
+  if (setsRes.success) allPamphletSets = setsRes.data;
+  renderPamphletSetsTable();
+}
+
+function cancelSetEdit() {
+  editingSetId = null;
+  document.getElementById('set-name-input').value = '';
+  document.getElementById('set-save-btn').textContent = '保存する';
+  document.querySelectorAll('.set-product-check').forEach(chk => chk.checked = false);
+  document.getElementById('set-alert').innerHTML = '';
+}
+
+async function deletePamphletSet(id, name) {
+  if (!confirm(`「${name}」を削除しますか？`)) return;
+  const res = await api('DELETE', `/api/pamphlet-sets/${id}`);
+  if (!res.success) return showToast(res.message, 'danger');
+  showToast('おすすめセットを削除しました');
+  const setsRes = await api('GET', '/api/pamphlet-sets');
+  if (setsRes.success) allPamphletSets = setsRes.data;
+  renderPamphletSetsTable();
 }
 
 // ===== ユーティリティ =====
@@ -474,7 +641,6 @@ async function importCsv() {
     const resultDiv = document.getElementById('csv-result');
     resultDiv.classList.remove('d-none');
 
-    // サマリー
     document.getElementById('csv-result-summary').innerHTML = `
       <div class="d-flex gap-3 flex-wrap">
         <span class="badge bg-success fs-6 px-3 py-2"><i class="bi bi-check-circle me-1"></i>登録成功：${success.length}件</span>
@@ -483,7 +649,6 @@ async function importCsv() {
         </span>
       </div>`;
 
-    // 成功一覧
     const successArea = document.getElementById('csv-success-area');
     if (success.length > 0) {
       successArea.classList.remove('d-none');
@@ -493,7 +658,6 @@ async function importCsv() {
       successArea.classList.add('d-none');
     }
 
-    // エラー一覧
     const errorArea = document.getElementById('csv-error-area');
     if (errors.length > 0) {
       errorArea.classList.remove('d-none');
