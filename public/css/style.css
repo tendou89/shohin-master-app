@@ -240,27 +240,6 @@ body {
     height: 90px;
   }
 
-  /* 単品ページ：3列グリッドと同じカードサイズに統一 */
-  .pamphlet-single {
-    display: grid !important;
-    grid-template-columns: repeat(3, 1fr) !important;
-    gap: 3px !important;
-  }
-  .pamphlet-single .pamphlet-item {
-    max-width: 100% !important;
-    margin: 0 !important;
-  }
-  .pamphlet-single .pamphlet-item-image,
-  .pamphlet-single .pamphlet-item-image-placeholder {
-    height: 90px !important;
-  }
-  .pamphlet-single .pamphlet-item-name { font-size: 0.58rem !important; }
-  .pamphlet-single .pamphlet-item-price { font-size: 0.58rem !important; }
-  .pamphlet-single .pamphlet-item-desc {
-    -webkit-line-clamp: 1 !important;
-    font-size: 0.5rem !important;
-  }
-
   .pamphlet-item-body {
     padding: 2px 4px;
   }
