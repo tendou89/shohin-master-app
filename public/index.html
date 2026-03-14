@@ -214,7 +214,20 @@
         <div class="card shadow-sm">
           <div class="card-header bg-warning-subtle fw-semibold d-flex justify-content-between align-items-center">
             <span>選択済み商品 <span id="selected-count" class="badge bg-warning text-dark">0</span>件</span>
-            <button class="btn btn-primary btn-sm" onclick="generatePamphlet()"><i class="bi bi-eye me-1"></i>プレビュー生成</button>
+            <div class="d-flex align-items-center gap-2">
+              <label class="small fw-semibold mb-0 text-nowrap">1ページあたり</label>
+              <select id="items-per-page" class="form-select form-select-sm" style="width:80px">
+                <option value="6">6件</option>
+                <option value="8">8件</option>
+                <option value="10">10件</option>
+                <option value="12">12件</option>
+                <option value="14">14件</option>
+                <option value="16">16件</option>
+                <option value="18">18件</option>
+                <option value="20">20件</option>
+              </select>
+              <button class="btn btn-primary btn-sm" onclick="generatePamphlet()"><i class="bi bi-eye me-1"></i>プレビュー生成</button>
+            </div>
           </div>
           <div class="card-body p-2">
             <div id="selected-products-list" class="text-muted small p-2">商品が選択されていません</div>
