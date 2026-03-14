@@ -91,6 +91,7 @@ body {
   overflow: hidden;
   background: #fafafa;
   page-break-inside: avoid;
+  break-inside: avoid;
 }
 
 .pamphlet-item-image {
@@ -167,9 +168,88 @@ body {
 @media print {
   body * { visibility: hidden; }
   #page-preview, #page-preview * { visibility: visible; }
-  #page-preview { position: absolute; left: 0; top: 0; width: 100%; }
-  .pamphlet-page { box-shadow: none; margin: 0; width: 100%; }
-  nav, .d-flex.align-items-center.gap-2.mb-3 { display: none !important; }
+  #page-preview {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+  }
+  nav,
+  .d-flex.align-items-center.gap-2.mb-3 { display: none !important; }
+
+  /* 印刷時はA4サイズに合わせる */
+  .pamphlet-page {
+    box-shadow: none;
+    margin: 0;
+    padding: 10mm;
+    width: 210mm;
+    min-height: 0;
+    page-break-after: always;
+    break-after: page;
+  }
+
+  /* 最後のページは改ページなし */
+  .pamphlet-page:last-child {
+    page-break-after: avoid;
+    break-after: avoid;
+  }
+
+  /* 商品グリッド：印刷時も2列を維持 */
+  .pamphlet-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+  }
+
+  /* 商品カード：印刷時はコンパクトに */
+  .pamphlet-item {
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+
+  /* 商品数に応じて画像の高さを自動調整 */
+  .pamphlet-item-image,
+  .pamphlet-item-image-placeholder {
+    height: 100px;
+  }
+
+  .pamphlet-item-body {
+    padding: 6px 8px;
+  }
+
+  .pamphlet-item-name {
+    font-size: 0.82rem;
+    margin-bottom: 2px;
+  }
+
+  .pamphlet-item-volume {
+    font-size: 0.7rem;
+    margin-bottom: 2px;
+  }
+
+  .pamphlet-item-price {
+    font-size: 0.85rem;
+    margin-bottom: 2px;
+  }
+
+  .pamphlet-item-desc {
+    font-size: 0.68rem;
+    -webkit-line-clamp: 2;
+  }
+
+  .pamphlet-code-badge {
+    font-size: 0.65rem;
+    padding: 1px 4px;
+  }
+
+  .pamphlet-title {
+    font-size: 1.4rem;
+  }
+
+  .pamphlet-header {
+    padding-bottom: 6px;
+    margin-bottom: 10px;
+  }
 }
 
 /* 選択済みリスト */
