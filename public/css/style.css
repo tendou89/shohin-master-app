@@ -195,7 +195,7 @@ body {
   .pamphlet-page {
     box-shadow: none;
     margin: 0;
-    padding: 4mm 6mm;
+    padding: 3mm 5mm;
     width: 210mm;
     min-height: 0;
     page-break-after: always;
@@ -211,14 +211,14 @@ body {
   .pamphlet-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
-    gap: 4px;
+    gap: 3px;
   }
 
   /* 3列（9件・12件・15件） */
   .pamphlet-grid-3col {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: 4px;
+    gap: 3px;
   }
 
   .pamphlet-item {
@@ -229,55 +229,66 @@ body {
   /* 2列の画像 */
   .pamphlet-grid .pamphlet-item-image,
   .pamphlet-grid .pamphlet-item-image-placeholder {
-    height: 80px;
+    height: 70px;
   }
 
-  /* 3列の画像（より小さく） */
+  /* 3列の画像（非常にコンパクト） */
   .pamphlet-grid-3col .pamphlet-item-image,
   .pamphlet-grid-3col .pamphlet-item-image-placeholder {
-    height: 55px;
+    height: 38px;
   }
 
   .pamphlet-item-body {
-    padding: 3px 5px;
+    padding: 2px 4px;
   }
 
   .pamphlet-item-name {
-    font-size: 0.65rem;
-    font-weight: 700;
-    margin-bottom: 1px;
-  }
-
-  .pamphlet-item-volume {
     font-size: 0.58rem;
-    margin-bottom: 1px;
-  }
-
-  .pamphlet-item-price {
-    font-size: 0.65rem;
-    margin-bottom: 1px;
-  }
-
-  .pamphlet-item-desc {
-    font-size: 0.55rem;
-    -webkit-line-clamp: 1;
+    font-weight: 700;
+    margin-bottom: 0px;
     line-height: 1.2;
   }
 
-  .pamphlet-code-badge {
+  .pamphlet-item-volume {
     font-size: 0.52rem;
-    padding: 0px 3px;
-    margin-bottom: 1px;
+    margin-bottom: 0px;
+    line-height: 1.2;
+  }
+
+  .pamphlet-item-price {
+    font-size: 0.58rem;
+    margin-bottom: 0px;
+    line-height: 1.2;
+  }
+
+  .pamphlet-item-desc {
+    font-size: 0.5rem;
+    -webkit-line-clamp: 1;
+    line-height: 1.1;
+  }
+
+  .pamphlet-code-badge {
+    font-size: 0.48rem;
+    padding: 0px 2px;
+    margin-bottom: 0px;
+    line-height: 1.2;
   }
 
   .pamphlet-title {
-    font-size: 1rem;
+    font-size: 0.9rem;
   }
 
   .pamphlet-header {
-    padding-bottom: 3px;
-    margin-bottom: 5px;
-    border-bottom-width: 2px;
+    padding-bottom: 2px;
+    margin-bottom: 4px;
+    border-bottom-width: 1px;
+  }
+
+  /* 注記も小さく */
+  .pamphlet-page > div:last-child {
+    font-size: 0.5rem !important;
+    margin-top: 3px !important;
+    padding-top: 2px !important;
   }
 }
 
