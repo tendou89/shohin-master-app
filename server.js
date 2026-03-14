@@ -33,6 +33,14 @@ db.serialize(() => {
     created_at TEXT NOT NULL DEFAULT (datetime('now','localtime')),
     updated_at TEXT NOT NULL DEFAULT (datetime('now','localtime'))
   )`);
+  // おすすめパンフレットセットテーブル
+  db.run(`CREATE TABLE IF NOT EXISTS pamphlet_sets (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    set_name TEXT NOT NULL UNIQUE,
+    product_codes TEXT NOT NULL,
+    created_at TEXT NOT NULL DEFAULT (datetime('now','localtime')),
+    updated_at TEXT NOT NULL DEFAULT (datetime('now','localtime'))
+  )`);
   const cats = ['食品','飲料','日用品','雑貨','衣料','その他'];
   cats.forEach((name, i) => {
     db.run('INSERT OR IGNORE INTO categories (category_name, sort_order) VALUES (?, ?)', [name, i+1]);
@@ -290,6 +298,50 @@ app.post('/api/pamphlet', async (req, res) => {
     if (!codes||codes.length===0) return ng(res, '商品コードを指定してください');
     const placeholders = codes.map(()=>'?').join(',');
     ok(res, await dbAll(`SELECT p.*,c.category_name FROM products p LEFT JOIN categories c ON p.category_id=c.id WHERE p.product_code IN (${placeholders}) AND p.is_deleted=0`, codes));
+  } catch(e) { ng(res, e.message, 500); }
+});
+
+// ===== おすすめパンフレットセットAPI =====
+app.get('/api/pamphlet-sets', async (req, res) => {
+  try {
+    ok(res, await dbAll('SELECT * FROM pamphlet_sets ORDER BY id'));
+  } catch(e) { ng(res, e.message, 500); }
+});
+
+app.post('/api/pamphlet-sets', async (req, res) => {
+  try {
+    const { set_name, product_codes } = req.body;
+    if (!set_name) return ng(res, 'セット名は必須です');
+    if (!product_codes || product_codes.length === 0) return ng(res, '商品を1つ以上選択してください');
+    const codesJson = JSON.stringify(product_codes);
+    await dbRun('INSERT INTO pamphlet_sets (set_name, product_codes) VALUES (?, ?)', [set_name.trim(), codesJson]);
+    const row = await dbGet('SELECT * FROM pamphlet_sets WHERE set_name=?', [set_name.trim()]);
+    ok(res, row, 'おすすめセットを登録しました');
+  } catch(e) {
+    if (e.message.includes('UNIQUE')) return ng(res, 'そのセット名は既に存在します');
+    ng(res, e.message, 500);
+  }
+});
+
+app.put('/api/pamphlet-sets/:id', async (req, res) => {
+  try {
+    const { set_name, product_codes } = req.body;
+    if (!set_name) return ng(res, 'セット名は必須です');
+    if (!product_codes || product_codes.length === 0) return ng(res, '商品を1つ以上選択してください');
+    const codesJson = JSON.stringify(product_codes);
+    await dbRun(`UPDATE pamphlet_sets SET set_name=?, product_codes=?, updated_at=datetime('now','localtime') WHERE id=?`,
+      [set_name.trim(), codesJson, req.params.id]);
+    ok(res, null, 'おすすめセットを更新しました');
+  } catch(e) {
+    if (e.message.includes('UNIQUE')) return ng(res, 'そのセット名は既に存在します');
+    ng(res, e.message, 500);
+  }
+});
+
+app.delete('/api/pamphlet-sets/:id', async (req, res) => {
+  try {
+    await dbRun('DELETE FROM pamphlet_sets WHERE id=?', [req.params.id]);
+    ok(res, null, 'おすすめセットを削除しました');
   } catch(e) { ng(res, e.message, 500); }
 });
 
