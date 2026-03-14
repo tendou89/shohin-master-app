@@ -398,14 +398,15 @@ async function generatePamphlet() {
   const codes = pamphletSelected.map(s => s.product_code);
   const res = await api('POST', '/api/pamphlet', { codes });
   if (!res.success) return showToast(res.message, 'danger');
-  renderPamphletPreview(res.data);
+  const itemsPerPage = parseInt(document.getElementById('items-per-page').value) || 6;
+  renderPamphletPreview(res.data, itemsPerPage);
   showPage('preview');
 }
 
-function renderPamphletPreview(products) {
+function renderPamphletPreview(products, itemsPerPage = 6) {
   const area = document.getElementById('pamphlet-preview-area');
   const today = new Date().toLocaleDateString('ja-JP', { year: 'numeric', month: 'long', day: 'numeric' });
-  const ITEMS_PER_PAGE = 6;
+  const ITEMS_PER_PAGE = itemsPerPage;
 
   const pamphletPages = [];
   for (let i = 0; i < products.length; i += ITEMS_PER_PAGE) {
