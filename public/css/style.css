@@ -180,7 +180,7 @@ body {
 .pamphlet-single .pamphlet-item-desc { -webkit-line-clamp: 8; font-size: 0.9rem; }
 
 /* パンフレット印刷時 */
-@page { margin: 0mm; }
+@page { margin: 8mm; }
 
 @media print {
   body * { visibility: hidden; }
@@ -196,8 +196,8 @@ body {
 
   .pamphlet-page {
     box-shadow: none;
-    margin: 0;
-    padding: 1mm 2mm;
+    margin: 0 auto;
+    padding: 4mm 4mm;
     width: 100%;
     min-height: 0;
     page-break-after: always;
@@ -240,7 +240,12 @@ body {
     height: 90px;
   }
 
-  /* 単品ページも同じサイズに統一 */
+  /* 単品ページ：3列グリッドと同じカードサイズに統一 */
+  .pamphlet-single {
+    display: grid !important;
+    grid-template-columns: repeat(3, 1fr) !important;
+    gap: 3px !important;
+  }
   .pamphlet-single .pamphlet-item {
     max-width: 100% !important;
     margin: 0 !important;
