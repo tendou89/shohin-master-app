@@ -181,7 +181,7 @@ body {
   .pamphlet-page {
     box-shadow: none;
     margin: 0;
-    padding: 10mm;
+    padding: 6mm 8mm;
     width: 210mm;
     min-height: 0;
     page-break-after: always;
@@ -194,61 +194,65 @@ body {
     break-after: avoid;
   }
 
-  /* 商品グリッド：印刷時も2列を維持 */
+  /* 商品グリッド：2列 × 5行 = 最大10件 */
   .pamphlet-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
-    gap: 8px;
+    gap: 5px;
   }
 
-  /* 商品カード：印刷時はコンパクトに */
+  /* 商品カードが途中で切れない */
   .pamphlet-item {
     page-break-inside: avoid;
     break-inside: avoid;
   }
 
-  /* 商品数に応じて画像の高さを自動調整 */
+  /* 画像は小さくコンパクトに */
   .pamphlet-item-image,
   .pamphlet-item-image-placeholder {
-    height: 100px;
+    height: 70px;
   }
 
   .pamphlet-item-body {
-    padding: 6px 8px;
+    padding: 4px 6px;
   }
 
   .pamphlet-item-name {
-    font-size: 0.82rem;
-    margin-bottom: 2px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    margin-bottom: 1px;
   }
 
   .pamphlet-item-volume {
-    font-size: 0.7rem;
-    margin-bottom: 2px;
+    font-size: 0.62rem;
+    margin-bottom: 1px;
   }
 
   .pamphlet-item-price {
-    font-size: 0.85rem;
-    margin-bottom: 2px;
+    font-size: 0.75rem;
+    margin-bottom: 1px;
   }
 
   .pamphlet-item-desc {
-    font-size: 0.68rem;
+    font-size: 0.6rem;
     -webkit-line-clamp: 2;
+    line-height: 1.3;
   }
 
   .pamphlet-code-badge {
-    font-size: 0.65rem;
-    padding: 1px 4px;
+    font-size: 0.58rem;
+    padding: 1px 3px;
+    margin-bottom: 2px;
   }
 
   .pamphlet-title {
-    font-size: 1.4rem;
+    font-size: 1.1rem;
   }
 
   .pamphlet-header {
-    padding-bottom: 6px;
-    margin-bottom: 10px;
+    padding-bottom: 4px;
+    margin-bottom: 6px;
+    border-bottom-width: 2px;
   }
 }
 
