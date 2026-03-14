@@ -85,6 +85,21 @@ body {
   gap: 20px;
 }
 
+.pamphlet-grid-3col {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+}
+
+.pamphlet-grid-3col .pamphlet-item-image,
+.pamphlet-grid-3col .pamphlet-item-image-placeholder {
+  height: 120px;
+}
+
+.pamphlet-grid-3col .pamphlet-item-name { font-size: 0.88rem; }
+.pamphlet-grid-3col .pamphlet-item-price { font-size: 0.9rem; }
+.pamphlet-grid-3col .pamphlet-item-desc { font-size: 0.72rem; }
+
 .pamphlet-item {
   border: 1px solid #e0e0e0;
   border-radius: 10px;
@@ -177,7 +192,6 @@ body {
   nav,
   .d-flex.align-items-center.gap-2.mb-3 { display: none !important; }
 
-  /* 印刷時はA4サイズに合わせる */
   .pamphlet-page {
     box-shadow: none;
     margin: 0;
@@ -188,29 +202,40 @@ body {
     break-after: page;
   }
 
-  /* 最後のページは改ページなし */
   .pamphlet-page:last-child {
     page-break-after: avoid;
     break-after: avoid;
   }
 
-  /* 商品グリッド：2列 × 5行 = 最大10件 */
+  /* 2列（6件以下） */
   .pamphlet-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
     gap: 4px;
   }
 
-  /* 商品カードが途中で切れない */
+  /* 3列（9件・12件・15件） */
+  .pamphlet-grid-3col {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 4px;
+  }
+
   .pamphlet-item {
     page-break-inside: avoid;
     break-inside: avoid;
   }
 
-  /* 画像は非表示にしてテキストのみで詰める */
-  .pamphlet-item-image,
-  .pamphlet-item-image-placeholder {
-    height: 50px;
+  /* 2列の画像 */
+  .pamphlet-grid .pamphlet-item-image,
+  .pamphlet-grid .pamphlet-item-image-placeholder {
+    height: 80px;
+  }
+
+  /* 3列の画像（より小さく） */
+  .pamphlet-grid-3col .pamphlet-item-image,
+  .pamphlet-grid-3col .pamphlet-item-image-placeholder {
+    height: 55px;
   }
 
   .pamphlet-item-body {
@@ -218,7 +243,7 @@ body {
   }
 
   .pamphlet-item-name {
-    font-size: 0.68rem;
+    font-size: 0.65rem;
     font-weight: 700;
     margin-bottom: 1px;
   }
@@ -229,18 +254,18 @@ body {
   }
 
   .pamphlet-item-price {
-    font-size: 0.68rem;
+    font-size: 0.65rem;
     margin-bottom: 1px;
   }
 
   .pamphlet-item-desc {
-    font-size: 0.56rem;
+    font-size: 0.55rem;
     -webkit-line-clamp: 1;
     line-height: 1.2;
   }
 
   .pamphlet-code-badge {
-    font-size: 0.55rem;
+    font-size: 0.52rem;
     padding: 0px 3px;
     margin-bottom: 1px;
   }
