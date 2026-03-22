@@ -414,7 +414,6 @@ function renderPamphletPreview(products, itemsPerPage = 6) {
   }
 
   function makeItemHtml(p) {
-    const tax = Math.round(p.price * 1.1);
     const imgHtml = p.image_path
       ? `<img src="${p.image_path}" alt="${esc(p.product_name)}" class="pamphlet-item-image">`
       : `<div class="pamphlet-item-image-placeholder"><i class="bi bi-image"></i></div>`;
@@ -422,11 +421,10 @@ function renderPamphletPreview(products, itemsPerPage = 6) {
       <div class="pamphlet-item">
         ${imgHtml}
         <div class="pamphlet-item-body">
-          <div class="pamphlet-code-badge mb-1">${esc(p.product_code)}</div>
           <div class="pamphlet-item-name">${esc(p.product_name)}</div>
           ${p.volume ? `<div class="pamphlet-item-volume">${esc(p.volume)}</div>` : ''}
           <div class="pamphlet-item-price">
-            ¥${Number(p.price).toLocaleString()} <span style="font-size:0.75rem;color:#888">（税込 ¥${tax.toLocaleString()}）</span>
+            ¥${Number(p.price).toLocaleString()}
           </div>
           ${p.description ? `<div class="pamphlet-item-desc">${esc(p.description)}</div>` : ''}
         </div>
@@ -445,7 +443,7 @@ function renderPamphletPreview(products, itemsPerPage = 6) {
         <div class="pamphlet-header d-flex justify-content-between align-items-end">
           <div>
             <div class="text-muted small mb-1">商品情報 ${pageLabel}</div>
-            <div class="pamphlet-title">商品パンフレット</div>
+            <div class="pamphlet-title">半澤鶏卵　商品パンフレット</div>
           </div>
           <div class="text-muted small">${today}</div>
         </div>
@@ -453,7 +451,7 @@ function renderPamphletPreview(products, itemsPerPage = 6) {
           ${itemsHtml}
         </div>
         <div class="mt-4 pt-3 border-top text-muted" style="font-size:0.72rem">
-          ※ 価格は税抜き定価です。税込価格は消費税10%で計算しています。
+          ※ 価格は税抜き価格です。
         </div>
       </div>`;
   }).join('');
