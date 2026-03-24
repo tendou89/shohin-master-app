@@ -8,8 +8,13 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 // DB初期化
-const dbPath = path.join(__dirname, 'db', 'shohin.db');
-if (!fs.existsSync(path.dirname(dbPath))) fs.mkdirSync(path.dirname(dbPath), { recursive: true });
+// DB初期化 - Persistent Disk対応
+const isProd = process.env.RENDER === 'true';
+const dbDir = isProd
+  ? '/opt/render/project/src/db'
+  : path.join(__dirname, 'db');
+const dbPath = path.join(dbDir, 'shohin.db');
+if (!fs.existsSync(dbDir)) fs.mkdirSync(dbDir, { recursive: true });
 const db = new sqlite3.Database(dbPath);
 
 db.serialize(() => {
@@ -58,7 +63,10 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'public')));
 
-const uploadDir = path.join(__dirname, 'uploads');
+// 画像保存先 - Persistent Disk対応
+const uploadDir = isProd
+  ? '/opt/render/project/src/uploads'
+  : path.join(__dirname, 'uploads');
 if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
 app.use('/uploads', express.static(uploadDir));
 
