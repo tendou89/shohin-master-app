@@ -33,11 +33,14 @@ db.serialize(() => {
     description TEXT,
     volume TEXT,
     jan_code TEXT,
+    expiry_date TEXT,
     image_path TEXT,
     is_deleted INTEGER NOT NULL DEFAULT 0,
     created_at TEXT NOT NULL DEFAULT (datetime('now','localtime')),
     updated_at TEXT NOT NULL DEFAULT (datetime('now','localtime'))
   )`);
+  // 既存テーブルへのカラム追加（既に存在する場合はエラーを無視）
+  db.run(`ALTER TABLE products ADD COLUMN expiry_date TEXT`, () => {});;
   // おすすめパンフレットセットテーブル
   db.run(`CREATE TABLE IF NOT EXISTS pamphlet_sets (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -230,12 +233,12 @@ app.post('/api/products/import-csv', uploadCsv.single('csv'), async (req, res) =
 
 app.post('/api/products', async (req, res) => {
   try {
-    const { product_code, product_name, category_id, price, description, volume, jan_code } = req.body;
+    const { product_code, product_name, category_id, price, description, volume, jan_code, expiry_date } = req.body;
     if (!product_code||!product_name||!category_id) return ng(res, '商品コード・商品名・カテゴリは必須です');
     if (!/^[A-Za-z0-9]{1,20}$/.test(product_code)) return ng(res, '商品コードは半角英数字20文字以内です');
     if (jan_code && jan_code.length>0 && !/^\d{13}$/.test(jan_code)) return ng(res, 'JANコードは13桁数字です');
-    await dbRun(`INSERT INTO products (product_code,product_name,category_id,price,description,volume,jan_code) VALUES (?,?,?,?,?,?,?)`,
-      [product_code.trim(), product_name.trim(), category_id, parseFloat(price)||0, description||null, volume||null, jan_code||null]);
+    await dbRun(`INSERT INTO products (product_code,product_name,category_id,price,description,volume,jan_code,expiry_date) VALUES (?,?,?,?,?,?,?,?)`,
+      [product_code.trim(), product_name.trim(), category_id, parseFloat(price)||0, description||null, volume||null, jan_code||null, expiry_date||null]);
     ok(res, null, '商品を登録しました');
   } catch(e) {
     if (e.message.includes('UNIQUE')) return ng(res, 'その商品コードは既に使用されています');
@@ -251,11 +254,11 @@ app.get('/api/products/:code', async (req, res) => {
 });
 app.put('/api/products/:code', async (req, res) => {
   try {
-    const { product_name, category_id, price, description, volume, jan_code } = req.body;
+    const { product_name, category_id, price, description, volume, jan_code, expiry_date } = req.body;
     if (!product_name||!category_id) return ng(res, '商品名・カテゴリは必須です');
     if (jan_code && jan_code.length>0 && !/^\d{13}$/.test(jan_code)) return ng(res, 'JANコードは13桁数字です');
-    await dbRun(`UPDATE products SET product_name=?,category_id=?,price=?,description=?,volume=?,jan_code=?,updated_at=datetime('now','localtime') WHERE product_code=? AND is_deleted=0`,
-      [product_name.trim(), category_id, parseFloat(price)||0, description||null, volume||null, jan_code||null, req.params.code]);
+    await dbRun(`UPDATE products SET product_name=?,category_id=?,price=?,description=?,volume=?,jan_code=?,expiry_date=?,updated_at=datetime('now','localtime') WHERE product_code=? AND is_deleted=0`,
+      [product_name.trim(), category_id, parseFloat(price)||0, description||null, volume||null, jan_code||null, expiry_date||null, req.params.code]);
     ok(res, null, '商品を更新しました');
   } catch(e) { ng(res, e.message, 500); }
 });
