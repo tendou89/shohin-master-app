@@ -148,11 +148,34 @@ body {
   margin-bottom: 6px;
 }
 
-.pamphlet-item-price {
-  font-size: 1.05rem;
-  font-weight: 700;
-  color: #c0392b;
+.pamphlet-item-table {
+  width: 100%;
+  border-collapse: collapse;
   margin-bottom: 6px;
+  font-size: 0.85rem;
+}
+
+.pamphlet-label {
+  color: #666;
+  font-size: 0.75rem;
+  white-space: nowrap;
+  padding: 1px 6px 1px 0;
+  width: 5em;
+}
+
+.pamphlet-value {
+  color: #1a1a2e;
+  font-weight: 600;
+  padding: 1px 0;
+}
+
+.pamphlet-value:first-child + .pamphlet-label ~ .pamphlet-value {
+  color: #c0392b;
+}
+
+tr:nth-child(2) .pamphlet-value {
+  color: #c0392b;
+  font-weight: 700;
 }
 
 .pamphlet-item-desc {
