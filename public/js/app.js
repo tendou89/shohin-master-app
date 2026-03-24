@@ -163,7 +163,7 @@ function clearFilter() {
 
 // ===== 商品登録 =====
 function clearRegisterForm() {
-  ['reg-code', 'reg-name', 'reg-price', 'reg-volume', 'reg-jan', 'reg-description'].forEach(id => {
+  ['reg-code', 'reg-name', 'reg-price', 'reg-volume', 'reg-jan', 'reg-expiry', 'reg-description'].forEach(id => {
     document.getElementById(id).value = '';
   });
   document.getElementById('register-alert').innerHTML = '';
@@ -178,6 +178,7 @@ async function registerProduct() {
     description: document.getElementById('reg-description').value.trim(),
     volume: document.getElementById('reg-volume').value.trim(),
     jan_code: document.getElementById('reg-jan').value.trim(),
+    expiry_date: document.getElementById('reg-expiry').value.trim(),
   };
   const res = await api('POST', '/api/products', body);
   if (!res.success) return showAlert('register-alert', res.message);
@@ -197,6 +198,7 @@ async function openDetail(code) {
   document.getElementById('edit-price').value = p.price;
   document.getElementById('edit-volume').value = p.volume || '';
   document.getElementById('edit-jan').value = p.jan_code || '';
+  document.getElementById('edit-expiry').value = p.expiry_date || '';
   document.getElementById('edit-description').value = p.description || '';
   document.getElementById('detail-alert').innerHTML = '';
   document.getElementById('detail-timestamps').textContent = `作成: ${p.created_at}　最終更新: ${p.updated_at}`;
@@ -227,6 +229,7 @@ async function updateProduct() {
     description: document.getElementById('edit-description').value.trim(),
     volume: document.getElementById('edit-volume').value.trim(),
     jan_code: document.getElementById('edit-jan').value.trim(),
+    expiry_date: document.getElementById('edit-expiry').value.trim(),
   };
   const res = await api('PUT', `/api/products/${currentEditCode}`, body);
   if (!res.success) return showAlert('detail-alert', res.message);
@@ -422,10 +425,11 @@ function renderPamphletPreview(products, itemsPerPage = 6) {
         ${imgHtml}
         <div class="pamphlet-item-body">
           <div class="pamphlet-item-name">${esc(p.product_name)}</div>
-          ${p.volume ? `<div class="pamphlet-item-volume">${esc(p.volume)}</div>` : ''}
-          <div class="pamphlet-item-price">
-            ¥${Number(p.price).toLocaleString()}
-          </div>
+          <table class="pamphlet-item-table">
+            ${p.volume ? `<tr><td class="pamphlet-label">内容量</td><td class="pamphlet-value">${esc(p.volume)}</td></tr>` : ''}
+            <tr><td class="pamphlet-label">定価</td><td class="pamphlet-value">¥${Number(p.price).toLocaleString()}</td></tr>
+            ${p.expiry_date ? `<tr><td class="pamphlet-label">賞味期限</td><td class="pamphlet-value">${esc(p.expiry_date)}</td></tr>` : ''}
+          </table>
           ${p.description ? `<div class="pamphlet-item-desc">${esc(p.description)}</div>` : ''}
         </div>
       </div>`;
