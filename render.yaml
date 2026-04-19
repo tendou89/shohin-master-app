@@ -4,3 +4,7 @@ services:
     env: node
     buildCommand: npm install
     startCommand: node server.js
+    disk:
+      name: shohin-data
+      mountPath: /var/data
+      sizeGB: 1
