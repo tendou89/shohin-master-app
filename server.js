@@ -11,7 +11,7 @@ const PORT = process.env.PORT || 3000;
 // DB初期化 - Persistent Disk対応
 const isProd = process.env.RENDER === 'true';
 const dbDir = isProd
-  ? '/var/data/db'
+  ? '/opt/render/project/src/db'
   : path.join(__dirname, 'db');
 const dbPath = path.join(dbDir, 'shohin.db');
 if (!fs.existsSync(dbDir)) fs.mkdirSync(dbDir, { recursive: true });
@@ -68,7 +68,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 // 画像保存先 - Persistent Disk対応
 const uploadDir = isProd
-  ? '/var/data/uploads'
+  ? '/opt/render/project/src/db/uploads'
   : path.join(__dirname, 'uploads');
 if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
 app.use('/uploads', express.static(uploadDir));
