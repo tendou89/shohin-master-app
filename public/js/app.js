@@ -362,8 +362,17 @@ function renderSelectedList() {
       <span class="badge bg-primary">${i + 1}</span>
       <span class="flex-grow-1">${esc(s.product_name)}</span>
       <span class="text-muted small">${esc(s.product_code)}</span>
+      <button class="btn btn-outline-secondary btn-sm py-0 px-1" onclick="movePamphletItem(${i}, -1)" ${i === 0 ? 'disabled' : ''}><i class="bi bi-arrow-up"></i></button>
+      <button class="btn btn-outline-secondary btn-sm py-0 px-1" onclick="movePamphletItem(${i}, 1)" ${i === pamphletSelected.length - 1 ? 'disabled' : ''}><i class="bi bi-arrow-down"></i></button>
       <button class="btn btn-outline-danger btn-sm py-0 px-1" onclick="togglePamphletSelect('${esc(s.product_code)}','${esc(s.product_name)}')"><i class="bi bi-x"></i></button>
     </div>`).join('');
+}
+
+function movePamphletItem(index, direction) {
+  const target = index + direction;
+  if (target < 0 || target >= pamphletSelected.length) return;
+  [pamphletSelected[index], pamphletSelected[target]] = [pamphletSelected[target], pamphletSelected[index]];
+  renderSelectedList();
 }
 
 // ===== おすすめセットボタン表示 =====
