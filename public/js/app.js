@@ -692,6 +692,34 @@ async function importCsv() {
   }
 }
 
+async function exportCsv() {
+  const res = await api('GET', '/api/products');
+  if (!res.success) return showToast('商品データの取得に失敗しました', 'danger');
+  const products = res.data;
+  if (!products.length) return showToast('エクスポートする商品がありません', 'danger');
+
+  const header = '商品コード,商品名,カテゴリ,定価,内容量,JANコード';
+  const rows = products.map(p => [
+    p.product_code,
+    p.product_name,
+    p.category_name || '',
+    p.price,
+    p.volume || '',
+    p.jan_code || '',
+  ].map(v => `"${String(v).replace(/"/g, '""')}"`).join(','));
+
+  const bom = '\uFEFF';
+  const blob = new Blob([bom + header + '\n' + rows.join('\n')], { type: 'text/csv;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const today = new Date().toISOString().slice(0, 10);
+  a.href = url;
+  a.download = `商品データ_${today}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast(`${products.length}件の商品データをエクスポートしました`);
+}
+
 function downloadCsvTemplate() {
   const header = '商品コード,商品名,カテゴリ,定価,内容量,JANコード,説明文';
   const sample = 'A001,サンプル商品A,食品,1200,500ml,,おいしい商品です\nB002,サンプル商品B,飲料,350,350ml,,';
