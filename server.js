@@ -81,7 +81,7 @@ const imageStorage = multer.diskStorage({
     cb(null, `${Date.now()}-${Math.random().toString(36).slice(2)}${ext}`);
   }
 });
-const uploadImage = multer({ storage: imageStorage, limits: { fileSize: 5*1024*1024 } });
+const uploadImage = multer({ storage: imageStorage, limits: { fileSize: 10*1024*1024 } });
 const uploadCsv = multer({ storage: multer.memoryStorage(), limits: { fileSize: 10*1024*1024 } });
 
 const ok = (res, data, message='') => res.json({ success: true, data, message });
