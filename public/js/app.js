@@ -654,15 +654,16 @@ async function importCsv() {
       return;
     }
 
-    const { success, errors } = data.data;
+    const { success, errors, skipped } = data.data;
     const resultDiv = document.getElementById('csv-result');
     resultDiv.classList.remove('d-none');
 
     document.getElementById('csv-result-summary').innerHTML = `
       <div class="d-flex gap-3 flex-wrap">
         <span class="badge bg-success fs-6 px-3 py-2"><i class="bi bi-check-circle me-1"></i>登録成功：${success.length}件</span>
+        <span class="badge bg-secondary fs-6 px-3 py-2"><i class="bi bi-skip-forward me-1"></i>スキップ（既存）：${(skipped||[]).length}件</span>
         <span class="badge ${errors.length > 0 ? 'bg-danger' : 'bg-secondary'} fs-6 px-3 py-2">
-          <i class="bi bi-exclamation-triangle me-1"></i>エラー・スキップ：${errors.length}件
+          <i class="bi bi-exclamation-triangle me-1"></i>エラー：${errors.length}件
         </span>
       </div>`;
 
@@ -685,6 +686,7 @@ async function importCsv() {
     }
 
     if (success.length > 0) showToast(`${success.length}件の商品を登録しました`, 'success');
+    else if ((skipped||[]).length > 0 && errors.length === 0) showToast('新規登録する商品がありませんでした（全て既存）', 'success');
 
   } catch(e) {
     btn.innerHTML = '<i class="bi bi-cloud-upload me-1"></i>登録する';

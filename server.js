@@ -169,6 +169,7 @@ app.post('/api/products/import-csv', uploadCsv.single('csv'), async (req, res) =
 
     const success = [];
     const errors = [];
+    const skipped = [];
 
     for (let i = 1; i < lines.length; i++) {
       const cols = parseCsvLine(lines[i]);
@@ -198,7 +199,7 @@ app.post('/api/products/import-csv', uploadCsv.single('csv'), async (req, res) =
         janValue = null;
       }
       if (existingCodes.has(code)) {
-        errors.push(`${rowNum}行目 [${code}]: 既に登録済みの商品コードです（既存データを優先します）`);
+        skipped.push(code);
         continue;
       }
 
@@ -227,13 +228,13 @@ app.post('/api/products/import-csv', uploadCsv.single('csv'), async (req, res) =
         success.push(code);
       } catch(e) {
         if (e.message.includes('UNIQUE')) {
-          errors.push(`${rowNum}行目 [${code}]: 既に登録済みの商品コードです（既存データを優先します）`);
+          skipped.push(code);
         } else {
           errors.push(`${rowNum}行目 [${code}]: ${e.message}`);
         }
       }
     }
-    ok(res, { success, errors }, `${success.length}件登録完了、${errors.length}件エラー`);
+    ok(res, { success, errors, skipped }, `${success.length}件登録完了、${skipped.length}件スキップ、${errors.length}件エラー`);
   } catch(e) {
     ng(res, `CSV処理エラー: ${e.message}`, 500);
   }
