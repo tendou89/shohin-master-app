@@ -723,6 +723,12 @@ async function exportCsv() {
   showToast(`${products.length}件の商品データをエクスポートしました`);
 }
 
+function downloadXlsxTemplate() {
+  const a = document.createElement('a');
+  a.href = '/api/products/template-xlsx';
+  a.click();
+}
+
 function downloadCsvTemplate() {
   const header = '商品コード,商品名,カテゴリ,定価,内容量,JANコード,説明文';
   const sample = 'A001,サンプル商品A,食品,1200,500ml,,おいしい商品です\nB002,サンプル商品B,飲料,350,350ml,,';

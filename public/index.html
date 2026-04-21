@@ -392,8 +392,11 @@
           <li>CSVに存在しないカテゴリは自動で作成されます</li>
           <li>文字コードは <strong>UTF-8</strong> で保存してください</li>
         </ul>
-        <button class="btn btn-outline-success btn-sm" onclick="downloadCsvTemplate()">
-          <i class="bi bi-download me-1"></i>CSVテンプレートをダウンロード
+        <button class="btn btn-outline-success btn-sm" onclick="downloadXlsxTemplate()">
+          <i class="bi bi-file-earmark-excel me-1"></i>Excelテンプレートをダウンロード（推奨）
+        </button>
+        <button class="btn btn-outline-secondary btn-sm ms-2" onclick="downloadCsvTemplate()">
+          <i class="bi bi-download me-1"></i>CSVテンプレート
         </button>
       </div>
     </div>

@@ -3,6 +3,7 @@ const sqlite3 = require('sqlite3').verbose();
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
+const XLSX = require('xlsx');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -135,6 +136,25 @@ app.get('/api/products', async (req, res) => {
     sql += ' ORDER BY p.updated_at DESC';
     ok(res, await dbAll(sql, params));
   } catch(e) { ng(res, e.message, 500); }
+});
+
+// Excelテンプレートダウンロード
+app.get('/api/products/template-xlsx', (req, res) => {
+  const wb = XLSX.utils.book_new();
+  // ヘッダー行
+  const header = [['商品コード','商品名','カテゴリ','定価','内容量','JANコード','説明文']];
+  const sample = [['A001','サンプル商品A','食品',1200,'500ml','4900000000000','おいしい商品です']];
+  const ws = XLSX.utils.aoa_to_sheet([...header, ...sample]);
+  // JANコード列（F列=index5）を文字列形式に設定
+  if (!ws['!cols']) ws['!cols'] = [];
+  for (let i = 0; i < 7; i++) ws['!cols'][i] = { wch: i === 5 ? 16 : 20 };
+  // F2セルのJANコードサンプルを文字列型で上書き
+  ws['F2'] = { t: 's', v: '4900000000000' };
+  XLSX.utils.book_append_sheet(wb, ws, '商品登録');
+  const buf = XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' });
+  res.setHeader('Content-Disposition', 'attachment; filename*=UTF-8\'\'%E5%95%86%E5%93%81%E7%99%BB%E9%8C%B2%E3%83%86%E3%83%B3%E3%83%97%E3%83%AC%E3%83%BC%E3%83%88.xlsx');
+  res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+  res.send(buf);
 });
 
 // CSV一括登録 ※ /api/products/:code より前に定義すること
