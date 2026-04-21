@@ -143,7 +143,7 @@ app.post('/api/products/import-csv', uploadCsv.single('csv'), async (req, res) =
     if (!req.file) return ng(res, 'CSVファイルが必要です');
 
     let text = req.file.buffer.toString('utf8').replace(/^\uFEFF/, '');
-    const lines = text.split(/\r?\n/).filter(l => l.trim() !== '');
+    const lines = splitCsvRows(text);
     if (lines.length < 2) return ng(res, 'CSVにデータがありません（ヘッダー行＋1行以上必要です）');
 
     const header = parseCsvLine(lines[0]).map(h => h.trim().toLowerCase());
@@ -187,14 +187,11 @@ app.post('/api/products/import-csv', uploadCsv.single('csv'), async (req, res) =
       if (!/^[A-Za-z0-9]{1,20}$/.test(code)) {
         errors.push(`${rowNum}行目 [${code}]: 商品コードは半角英数字20文字以内です`); continue;
       }
-      // 科学表記（例：4.9012345E+12）を13桁数字に変換
-      let janNormalized = jan;
+      // 科学表記（例：4.93501E+12）は精度が欠落しているため空欄扱い
+      let janValue = jan || null;
       if (jan && /^[\d.]+[eE][+\-]?\d+$/.test(jan)) {
-        const num = Math.round(Number(jan));
-        janNormalized = String(num);
-      }
-      let janValue = janNormalized || null;
-      if (janNormalized && !/^\d{13}$/.test(janNormalized)) {
+        janValue = null; // 科学表記は精度欠落のため破棄
+      } else if (jan && !/^\d{13}$/.test(jan)) {
         errors.push(`${rowNum}行目 [${code}]: JANコードが13桁でないため空欄で登録しました`);
         janValue = null;
       }
@@ -285,6 +282,28 @@ app.post('/api/products/:code/upload-image', uploadImage.single('image'), async 
     ok(res, { image_path: imagePath }, '画像をアップロードしました');
   } catch(e) { ng(res, e.message, 500); }
 });
+
+// 改行を含むセル（クォート内改行）を正しく扱いながら行分割する
+function splitCsvRows(text) {
+  const rows = [];
+  let current = '';
+  let inQuote = false;
+  for (let i = 0; i < text.length; i++) {
+    const ch = text[i];
+    if (ch === '"') {
+      if (inQuote && text[i + 1] === '"') { current += '"'; i++; }
+      else { inQuote = !inQuote; current += ch; }
+    } else if ((ch === '\r' || ch === '\n') && !inQuote) {
+      if (ch === '\r' && text[i + 1] === '\n') i++;
+      if (current.trim()) rows.push(current);
+      current = '';
+    } else {
+      current += ch;
+    }
+  }
+  if (current.trim()) rows.push(current);
+  return rows;
+}
 
 function parseCsvLine(line) {
   const result = [];
