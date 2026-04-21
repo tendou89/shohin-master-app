@@ -186,8 +186,14 @@ app.post('/api/products/import-csv', uploadCsv.single('csv'), async (req, res) =
       if (!/^[A-Za-z0-9]{1,20}$/.test(code)) {
         errors.push(`${rowNum}行目 [${code}]: 商品コードは半角英数字20文字以内です`); continue;
       }
-      let janValue = jan || null;
-      if (jan && !/^\d{13}$/.test(jan)) {
+      // 科学表記（例：4.9012345E+12）を13桁数字に変換
+      let janNormalized = jan;
+      if (jan && /^[\d.]+[eE][+\-]?\d+$/.test(jan)) {
+        const num = Math.round(Number(jan));
+        janNormalized = String(num);
+      }
+      let janValue = janNormalized || null;
+      if (janNormalized && !/^\d{13}$/.test(janNormalized)) {
         errors.push(`${rowNum}行目 [${code}]: JANコードが13桁でないため空欄で登録しました`);
         janValue = null;
       }
