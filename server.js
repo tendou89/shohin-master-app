@@ -294,13 +294,19 @@ app.delete('/api/products/:code', async (req, res) => {
     ok(res, null, '商品を削除しました');
   } catch(e) { ng(res, e.message, 500); }
 });
-app.post('/api/products/:code/upload-image', uploadImage.single('image'), async (req, res) => {
-  try {
-    if (!req.file) return ng(res, '画像ファイルが必要です');
-    const imagePath = `/uploads/${req.file.filename}`;
-    await dbRun(`UPDATE products SET image_path=?,updated_at=datetime('now','localtime') WHERE product_code=?`, [imagePath, req.params.code]);
-    ok(res, { image_path: imagePath }, '画像をアップロードしました');
-  } catch(e) { ng(res, e.message, 500); }
+app.post('/api/products/:code/upload-image', (req, res) => {
+  uploadImage.single('image')(req, res, async (err) => {
+    if (err) {
+      if (err.code === 'LIMIT_FILE_SIZE') return ng(res, '画像ファイルが10MBを超えています。10MB以内の画像を選択してください。');
+      return ng(res, `アップロードエラー: ${err.message}`, 500);
+    }
+    try {
+      if (!req.file) return ng(res, '画像ファイルが必要です');
+      const imagePath = `/uploads/${req.file.filename}`;
+      await dbRun(`UPDATE products SET image_path=?,updated_at=datetime('now','localtime') WHERE product_code=?`, [imagePath, req.params.code]);
+      ok(res, { image_path: imagePath }, '画像をアップロードしました');
+    } catch(e) { ng(res, e.message, 500); }
+  });
 });
 
 // 改行を含むセル（クォート内改行）を正しく扱いながら行分割する
