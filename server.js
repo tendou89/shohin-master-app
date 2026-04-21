@@ -186,8 +186,10 @@ app.post('/api/products/import-csv', uploadCsv.single('csv'), async (req, res) =
       if (!/^[A-Za-z0-9]{1,20}$/.test(code)) {
         errors.push(`${rowNum}行目 [${code}]: 商品コードは半角英数字20文字以内です`); continue;
       }
+      let janValue = jan || null;
       if (jan && !/^\d{13}$/.test(jan)) {
-        errors.push(`${rowNum}行目 [${code}]: JANコードは13桁数字です`); continue;
+        errors.push(`${rowNum}行目 [${code}]: JANコードが13桁でないため空欄で登録しました`);
+        janValue = null;
       }
       if (existingCodes.has(code)) {
         errors.push(`${rowNum}行目 [${code}]: 既に登録済みの商品コードです（既存データを優先します）`);
@@ -213,7 +215,7 @@ app.post('/api/products/import-csv', uploadCsv.single('csv'), async (req, res) =
       try {
         await dbRun(
           `INSERT INTO products (product_code,product_name,category_id,price,volume,jan_code,description) VALUES (?,?,?,?,?,?,?)`,
-          [code, name, categoryId, price, volume||null, jan||null, description||null]
+          [code, name, categoryId, price, volume||null, janValue, description||null]
         );
         existingCodes.add(code);
         success.push(code);

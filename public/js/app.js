@@ -135,7 +135,7 @@ function renderProductTable() {
   const tbody = document.getElementById('product-table-body');
   const count = document.getElementById('product-count');
   if (!allProducts.length) {
-    tbody.innerHTML = '<tr><td colspan="7" class="text-center py-5 text-muted"><i class="bi bi-inbox fs-2 d-block mb-2"></i>商品がありません</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="8" class="text-center py-5 text-muted"><i class="bi bi-inbox fs-2 d-block mb-2"></i>商品がありません</td></tr>';
     count.textContent = '';
     return;
   }
@@ -148,6 +148,7 @@ function renderProductTable() {
       <td class="text-end">¥${Number(p.price).toLocaleString()}</td>
       <td class="text-muted small">${esc(p.volume || '−')}</td>
       <td class="text-muted small font-monospace">${esc(p.jan_code || '−')}</td>
+      <td class="text-muted small">${esc(p.expiry_date || '−')}</td>
       <td class="text-center">
         <button class="btn btn-sm btn-outline-primary" onclick="event.stopPropagation();openDetail('${esc(p.product_code)}')"><i class="bi bi-pencil"></i></button>
         <button class="btn btn-sm btn-outline-danger" onclick="event.stopPropagation();confirmDelete('${esc(p.product_code)}','${esc(p.product_name)}')"><i class="bi bi-trash"></i></button>
