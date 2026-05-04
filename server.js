@@ -4,6 +4,7 @@ const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 const XLSX = require('xlsx');
+const sharp = require('sharp');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -307,7 +308,16 @@ app.post('/api/products/:code/upload-image', (req, res) => {
     }
     try {
       if (!req.file) return ng(res, '画像ファイルが必要です');
-      const imagePath = `/uploads/${req.file.filename}`;
+      // 画像を圧縮・リサイズ（最大1200px・JPEG品質80%）
+      const originalPath = req.file.path;
+      const compressedFilename = `${Date.now()}-${Math.random().toString(36).slice(2)}.jpg`;
+      const compressedPath = path.join(uploadDir, compressedFilename);
+      await sharp(originalPath)
+        .resize(1200, 1200, { fit: 'inside', withoutEnlargement: true })
+        .jpeg({ quality: 80 })
+        .toFile(compressedPath);
+      fs.unlink(originalPath, () => {}); // 元ファイル削除
+      const imagePath = `/uploads/${compressedFilename}`;
       await dbRun(`UPDATE products SET image_path=?,updated_at=datetime('now','localtime') WHERE product_code=?`, [imagePath, req.params.code]);
       ok(res, { image_path: imagePath }, '画像をアップロードしました');
     } catch(e) { ng(res, e.message, 500); }
