@@ -44,7 +44,9 @@
           <table class="table table-hover mb-0 align-middle">
             <thead class="table-primary">
               <tr>
-                <th>商品コード</th>
+                <th style="cursor:pointer;user-select:none" onclick="toggleSortByCode()">
+                  商品コード <span id="sort-icon">▲</span>
+                </th>
                 <th>商品名</th>
                 <th>カテゴリ</th>
                 <th class="text-end">定価</th>

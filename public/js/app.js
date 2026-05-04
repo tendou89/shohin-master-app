@@ -3,6 +3,7 @@
 // ===== 状態管理 =====
 let allProducts = [];
 let allCategories = [];
+let sortAsc = true; // 商品コードの並び順（true=昇順）
 let currentEditCode = null;
 let pamphletSelected = []; // { product_code, product_name }
 let pamphletAllProducts = [];
@@ -131,16 +132,26 @@ async function loadProducts() {
   renderProductTable();
 }
 
+function toggleSortByCode() {
+  sortAsc = !sortAsc;
+  document.getElementById('sort-icon').textContent = sortAsc ? '▲' : '▼';
+  renderProductTable();
+}
+
 function renderProductTable() {
   const tbody = document.getElementById('product-table-body');
   const count = document.getElementById('product-count');
-  if (!allProducts.length) {
+  const sorted = [...allProducts].sort((a, b) => {
+    const cmp = a.product_code.localeCompare(b.product_code, 'ja', { numeric: true });
+    return sortAsc ? cmp : -cmp;
+  });
+  if (!sorted.length) {
     tbody.innerHTML = '<tr><td colspan="8" class="text-center py-5 text-muted"><i class="bi bi-inbox fs-2 d-block mb-2"></i>商品がありません</td></tr>';
     count.textContent = '';
     return;
   }
-  count.textContent = `${allProducts.length}件`;
-  tbody.innerHTML = allProducts.map(p => `
+  count.textContent = `${sorted.length}件`;
+  tbody.innerHTML = sorted.map(p => `
     <tr style="cursor:pointer" onclick="openDetail('${esc(p.product_code)}')">
       <td><span class="badge bg-secondary">${esc(p.product_code)}</span></td>
       <td class="fw-semibold">${esc(p.product_name)}</td>
