@@ -156,7 +156,7 @@ function renderProductTable() {
       <td><span class="badge bg-secondary">${esc(p.product_code)}</span></td>
       <td class="fw-semibold">${esc(p.product_name)}</td>
       <td><span class="badge bg-light text-dark border">${esc(p.category_name || '−')}</span></td>
-      <td class="text-end">¥${Number(p.price).toLocaleString()}</td>
+      <td class="text-end">${p.price > 0 ? '¥' + Number(p.price).toLocaleString() : '−'}</td>
       <td class="text-muted small">${esc(p.volume || '−')}</td>
       <td class="text-muted small font-monospace">${esc(p.jan_code || '−')}</td>
       <td class="text-muted small">${esc(p.expiry_date || '−')}</td>
@@ -207,7 +207,7 @@ async function openDetail(code) {
   currentEditCode = code;
   document.getElementById('edit-code').value = p.product_code;
   document.getElementById('edit-name').value = p.product_name;
-  document.getElementById('edit-price').value = p.price;
+  document.getElementById('edit-price').value = p.price > 0 ? p.price : '';
   document.getElementById('edit-volume').value = p.volume || '';
   document.getElementById('edit-jan').value = p.jan_code || '';
   document.getElementById('edit-expiry').value = p.expiry_date || '';
@@ -459,7 +459,7 @@ function renderPamphletPreview(products, itemsPerPage = 6) {
           <div class="pamphlet-item-name">${esc(p.product_name)}</div>
           <table class="pamphlet-item-table">
             ${p.volume ? `<tr><td class="pamphlet-label">内容量</td><td class="pamphlet-value">${esc(p.volume)}</td></tr>` : ''}
-            <tr><td class="pamphlet-label">定価</td><td class="pamphlet-value">¥${Number(p.price).toLocaleString()}</td></tr>
+            ${p.price > 0 ? `<tr><td class="pamphlet-label">定価</td><td class="pamphlet-value">¥${Number(p.price).toLocaleString()}</td></tr>` : ''}
             ${p.expiry_date ? `<tr><td class="pamphlet-label">賞味期限</td><td class="pamphlet-value">${esc(p.expiry_date)}</td></tr>` : ''}
           </table>
           ${p.description ? `<div class="pamphlet-item-desc">${esc(p.description)}</div>` : ''}
