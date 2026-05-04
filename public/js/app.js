@@ -280,7 +280,10 @@ async function loadPamphletPage() {
   if (!allCategories.length) await loadCategories();
   const res = await api('GET', '/api/products');
   if (res.success) {
-    pamphletAllProducts = res.data;
+    // 商品コードの小さい順（数字は数値順）に並び替え
+    pamphletAllProducts = res.data.sort((a, b) =>
+      a.product_code.localeCompare(b.product_code, 'ja', { numeric: true })
+    );
     renderPamphletProductList(pamphletAllProducts);
   }
   // おすすめセット読み込み
