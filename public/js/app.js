@@ -504,7 +504,9 @@ function printPamphlet() {
 async function loadPamphletSetsPage() {
   if (!allCategories.length) await loadCategories();
   const res = await api('GET', '/api/products');
-  if (res.success) pamphletAllProducts = res.data;
+  if (res.success) pamphletAllProducts = res.data.sort((a, b) =>
+    a.product_code.localeCompare(b.product_code, 'ja', { numeric: true })
+  );
   const setsRes = await api('GET', '/api/pamphlet-sets');
   if (setsRes.success) allPamphletSets = setsRes.data;
   renderPamphletSetsTable();
