@@ -233,7 +233,11 @@ async function updateProduct() {
     expiry_date: document.getElementById('edit-expiry').value.trim(),
   };
   const res = await api('PUT', `/api/products/${currentEditCode}`, body);
-  if (!res.success) return showAlert('detail-alert', res.message);
+  if (!res.success) {
+    showAlert('detail-alert', `⚠️ 保存できませんでした：${res.message}`);
+    showToast(`保存エラー：${res.message}`, 'danger');
+    return;
+  }
   showToast('商品を更新しました');
 }
 

@@ -280,9 +280,14 @@ app.get('/api/products/:code', async (req, res) => {
 });
 app.put('/api/products/:code', async (req, res) => {
   try {
-    const { product_name, category_id, price, description, volume, jan_code, expiry_date } = req.body;
+    const { product_name, category_id, price, description, volume, expiry_date } = req.body;
+    let jan_code = req.body.jan_code || '';
     if (!product_name||!category_id) return ng(res, '商品名・カテゴリは必須です');
-    if (jan_code && jan_code.length>0 && !/^\d{13}$/.test(jan_code)) return ng(res, 'JANコードは13桁数字です');
+    // 科学表記のJANコードを自動変換
+    if (jan_code && /^[\d.]+[eE][+\-]?\d+$/.test(jan_code)) {
+      jan_code = ''; // 精度欠落のため空欄にする
+    }
+    if (jan_code && !/^\d{13}$/.test(jan_code)) return ng(res, 'JANコードは13桁数字です');
     await dbRun(`UPDATE products SET product_name=?,category_id=?,price=?,description=?,volume=?,jan_code=?,expiry_date=?,updated_at=datetime('now','localtime') WHERE product_code=? AND is_deleted=0`,
       [product_name.trim(), category_id, parseFloat(price)||0, description||null, volume||null, jan_code||null, expiry_date||null, req.params.code]);
     ok(res, null, '商品を更新しました');
