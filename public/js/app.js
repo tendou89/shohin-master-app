@@ -411,8 +411,12 @@ async function generatePamphlet() {
   const codes = pamphletSelected.map(s => s.product_code);
   const res = await api('POST', '/api/pamphlet', { codes });
   if (!res.success) return showToast(res.message, 'danger');
+  // 選択済みリストの順番通りに並び替え
+  const productMap = {};
+  res.data.forEach(p => { productMap[p.product_code] = p; });
+  const ordered = codes.map(code => productMap[code]).filter(Boolean);
   const itemsPerPage = parseInt(document.getElementById('items-per-page').value) || 6;
-  renderPamphletPreview(res.data, itemsPerPage);
+  renderPamphletPreview(ordered, itemsPerPage);
   showPage('preview');
 }
 
