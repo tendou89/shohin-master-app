@@ -511,7 +511,8 @@ function renderPamphletPreview(products, itemsPerPage = 6) {
           ${itemsHtml}
         </div>
         <div class="mt-4 pt-3 border-top text-muted" style="font-size:0.72rem">
-          ※ 価格は税抜き価格です。<br>
+          ※ 定価は税抜き価格です。<br>
+          ※ ロット、卸価格については見積書にてお知らせします。<br>
           ※ 商品によっては在庫が少なく、販売できない場合がございます。
         </div>
       </div>`;
