@@ -294,8 +294,13 @@ app.put('/api/products/:code', async (req, res) => {
 
     if (codeChanged) {
       if (!/^[A-Za-z0-9]{1,20}$/.test(new_product_code)) return ng(res, '商品コードは半角英数字20文字以内です');
-      const dup = await dbGet('SELECT id FROM products WHERE product_code=?', [new_product_code]);
-      if (dup) return ng(res, 'その商品コードは既に使用されています（削除済み商品と重複しています）');
+      const dup = await dbGet('SELECT id, is_deleted FROM products WHERE product_code=?', [new_product_code]);
+      if (dup) {
+        if (dup.is_deleted === 0) return ng(res, 'その商品コードは既に使用されています');
+        // 削除済み商品のコードを退避して解放する
+        const freedCode = `_del_${Date.now()}`;
+        await dbRun('UPDATE products SET product_code=? WHERE product_code=?', [freedCode, new_product_code]);
+      }
       // おすすめセット内の参照を更新
       const sets = await dbAll('SELECT id, product_codes FROM pamphlet_sets');
       for (const set of sets) {
