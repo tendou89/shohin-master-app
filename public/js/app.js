@@ -146,12 +146,18 @@ function renderProductTable() {
     return sortAsc ? cmp : -cmp;
   });
   if (!sorted.length) {
-    tbody.innerHTML = '<tr><td colspan="8" class="text-center py-5 text-muted"><i class="bi bi-inbox fs-2 d-block mb-2"></i>商品がありません</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="9" class="text-center py-5 text-muted"><i class="bi bi-inbox fs-2 d-block mb-2"></i>商品がありません</td></tr>';
     count.textContent = '';
     return;
   }
   count.textContent = `${sorted.length}件`;
-  tbody.innerHTML = sorted.map(p => `
+  tbody.innerHTML = sorted.map(p => {
+    const storageHtml = p.storage_type === '冷蔵'
+      ? `<span class="badge" style="background:#cfe2ff;color:#0a58ca">${esc(p.storage_type)}</span>`
+      : p.storage_type === '常温'
+      ? `<span class="badge bg-light text-dark border">${esc(p.storage_type)}</span>`
+      : '−';
+    return `
     <tr style="cursor:pointer" onclick="openDetail('${esc(p.product_code)}')">
       <td><span class="badge bg-secondary">${esc(p.product_code)}</span></td>
       <td class="fw-semibold">${esc(p.product_name)}</td>
@@ -160,11 +166,13 @@ function renderProductTable() {
       <td class="text-muted small">${esc(p.volume || '−')}</td>
       <td class="text-muted small font-monospace">${esc(p.jan_code || '−')}</td>
       <td class="text-muted small">${esc(p.expiry_date || '−')}</td>
+      <td class="text-center">${storageHtml}</td>
       <td class="text-center">
         <button class="btn btn-sm btn-outline-primary" onclick="event.stopPropagation();openDetail('${esc(p.product_code)}')"><i class="bi bi-pencil"></i></button>
         <button class="btn btn-sm btn-outline-danger" onclick="event.stopPropagation();confirmDelete('${esc(p.product_code)}','${esc(p.product_name)}')"><i class="bi bi-trash"></i></button>
       </td>
-    </tr>`).join('');
+    </tr>`;
+  }).join('');
 }
 
 function clearFilter() {
@@ -178,6 +186,7 @@ function clearRegisterForm() {
   ['reg-code', 'reg-name', 'reg-price', 'reg-volume', 'reg-jan', 'reg-expiry', 'reg-description'].forEach(id => {
     document.getElementById(id).value = '';
   });
+  document.getElementById('reg-storage-type').value = '';
   document.getElementById('register-alert').innerHTML = '';
 }
 
@@ -191,6 +200,7 @@ async function registerProduct() {
     volume: document.getElementById('reg-volume').value.trim(),
     jan_code: document.getElementById('reg-jan').value.trim(),
     expiry_date: document.getElementById('reg-expiry').value.trim(),
+    storage_type: document.getElementById('reg-storage-type').value,
   };
   const res = await api('POST', '/api/products', body);
   if (!res.success) return showAlert('register-alert', res.message);
@@ -212,6 +222,7 @@ async function openDetail(code) {
   document.getElementById('edit-jan').value = p.jan_code || '';
   document.getElementById('edit-expiry').value = p.expiry_date || '';
   document.getElementById('edit-description').value = p.description || '';
+  document.getElementById('edit-storage-type').value = p.storage_type || '';
   document.getElementById('detail-alert').innerHTML = '';
   document.getElementById('detail-timestamps').textContent = `作成: ${p.created_at}　最終更新: ${p.updated_at}`;
   populateCategorySelects();
@@ -248,6 +259,7 @@ async function updateProduct() {
     volume: document.getElementById('edit-volume').value.trim(),
     jan_code: document.getElementById('edit-jan').value.trim(),
     expiry_date: document.getElementById('edit-expiry').value.trim(),
+    storage_type: document.getElementById('edit-storage-type').value,
   };
   const res = await api('PUT', `/api/products/${currentEditCode}`, body);
   if (!res.success) {
@@ -459,11 +471,16 @@ function renderPamphletPreview(products, itemsPerPage = 6) {
     const imgHtml = p.image_path
       ? `<img src="${p.image_path}" alt="${esc(p.product_name)}" class="pamphlet-item-image">`
       : `<div class="pamphlet-item-image-placeholder"><i class="bi bi-image"></i></div>`;
+    const storageLabel = p.storage_type === '冷蔵'
+      ? `<span class="pamphlet-storage-label pamphlet-storage-reizo">${esc(p.storage_type)}</span>`
+      : p.storage_type === '常温'
+      ? `<span class="pamphlet-storage-label pamphlet-storage-joon">${esc(p.storage_type)}</span>`
+      : '';
     return `
       <div class="pamphlet-item">
         ${imgHtml}
         <div class="pamphlet-item-body">
-          <div class="pamphlet-item-name">${esc(p.product_name)}</div>
+          <div class="pamphlet-item-name">${esc(p.product_name)}${storageLabel}</div>
           <table class="pamphlet-item-table">
             ${p.volume ? `<tr><td class="pamphlet-label">内容量</td><td class="pamphlet-value">${esc(p.volume)}</td></tr>` : ''}
             ${p.price > 0 ? `<tr><td class="pamphlet-label">定価</td><td class="pamphlet-value">¥${Number(p.price).toLocaleString()}</td></tr>` : ''}

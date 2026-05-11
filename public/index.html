@@ -53,6 +53,7 @@
                 <th>内容量</th>
                 <th>JANコード</th>
                 <th>賞味期限</th>
+                <th>保存区分</th>
                 <th class="text-center">操作</th>
               </tr>
             </thead>
@@ -101,6 +102,14 @@
           <div class="col-md-4">
             <label class="form-label fw-semibold">賞味期限</label>
             <input id="reg-expiry" type="text" class="form-control" placeholder="例：2025年12月31日">
+          </div>
+          <div class="col-md-4">
+            <label class="form-label fw-semibold">保存区分</label>
+            <select id="reg-storage-type" class="form-select">
+              <option value="">未設定</option>
+              <option value="冷蔵">冷蔵</option>
+              <option value="常温">常温</option>
+            </select>
           </div>
           <div class="col-12">
             <label class="form-label fw-semibold">説明文</label>
@@ -171,6 +180,14 @@
               <div class="col-md-4">
                 <label class="form-label fw-semibold">賞味期限</label>
                 <input id="edit-expiry" type="text" class="form-control" placeholder="例：2025年12月31日">
+              </div>
+              <div class="col-md-4">
+                <label class="form-label fw-semibold">保存区分</label>
+                <select id="edit-storage-type" class="form-select">
+                  <option value="">未設定</option>
+                  <option value="冷蔵">冷蔵</option>
+                  <option value="常温">常温</option>
+                </select>
               </div>
               <div class="col-12">
                 <label class="form-label fw-semibold">説明文</label>
