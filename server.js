@@ -282,16 +282,37 @@ app.get('/api/products/:code', async (req, res) => {
 app.put('/api/products/:code', async (req, res) => {
   try {
     const { product_name, category_id, price, description, volume, expiry_date } = req.body;
+    const new_product_code = (req.body.new_product_code || '').trim();
     let jan_code = req.body.jan_code || '';
     if (!product_name||!category_id) return ng(res, '商品名・カテゴリは必須です');
     // 科学表記のJANコードを自動変換
-    if (jan_code && /^[\d.]+[eE][+\-]?\d+$/.test(jan_code)) {
-      jan_code = ''; // 精度欠落のため空欄にする
-    }
+    if (jan_code && /^[\d.]+[eE][+\-]?\d+$/.test(jan_code)) jan_code = '';
     if (jan_code && !/^\d{13}$/.test(jan_code)) return ng(res, 'JANコードは13桁数字です');
-    await dbRun(`UPDATE products SET product_name=?,category_id=?,price=?,description=?,volume=?,jan_code=?,expiry_date=?,updated_at=datetime('now','localtime') WHERE product_code=? AND is_deleted=0`,
-      [product_name.trim(), category_id, parseFloat(price)||0, description||null, volume||null, jan_code||null, expiry_date||null, req.params.code]);
-    ok(res, null, '商品を更新しました');
+
+    const currentCode = req.params.code;
+    const codeChanged = new_product_code && new_product_code !== currentCode;
+
+    if (codeChanged) {
+      if (!/^[A-Za-z0-9]{1,20}$/.test(new_product_code)) return ng(res, '商品コードは半角英数字20文字以内です');
+      const dup = await dbGet('SELECT id FROM products WHERE product_code=? AND is_deleted=0', [new_product_code]);
+      if (dup) return ng(res, 'その商品コードは既に使用されています');
+      // おすすめセット内の参照を更新
+      const sets = await dbAll('SELECT id, product_codes FROM pamphlet_sets');
+      for (const set of sets) {
+        try {
+          const codes = JSON.parse(set.product_codes);
+          if (codes.includes(currentCode)) {
+            const updated = codes.map(c => c === currentCode ? new_product_code : c);
+            await dbRun('UPDATE pamphlet_sets SET product_codes=? WHERE id=?', [JSON.stringify(updated), set.id]);
+          }
+        } catch(e) {}
+      }
+    }
+
+    const targetCode = codeChanged ? new_product_code : currentCode;
+    await dbRun(`UPDATE products SET product_code=?,product_name=?,category_id=?,price=?,description=?,volume=?,jan_code=?,expiry_date=?,updated_at=datetime('now','localtime') WHERE product_code=? AND is_deleted=0`,
+      [targetCode, product_name.trim(), category_id, parseFloat(price)||0, description||null, volume||null, jan_code||null, expiry_date||null, currentCode]);
+    ok(res, { new_product_code: targetCode }, '商品を更新しました');
   } catch(e) { ng(res, e.message, 500); }
 });
 app.delete('/api/products/:code', async (req, res) => {

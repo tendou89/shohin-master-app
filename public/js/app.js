@@ -234,7 +234,13 @@ async function openDetail(code) {
 }
 
 async function updateProduct() {
+  const newCode = document.getElementById('edit-code').value.trim();
+  const codeChanged = newCode !== currentEditCode;
+  if (codeChanged) {
+    if (!confirm(`商品コードを「${currentEditCode}」から「${newCode}」に変更します。\nおすすめセット内の参照も自動で更新されます。\n\nよろしいですか？`)) return;
+  }
   const body = {
+    new_product_code: newCode,
     product_name: document.getElementById('edit-name').value.trim(),
     category_id: document.getElementById('edit-category').value,
     price: document.getElementById('edit-price').value,
@@ -249,6 +255,7 @@ async function updateProduct() {
     showToast(`保存エラー：${res.message}`, 'danger');
     return;
   }
+  if (codeChanged) currentEditCode = res.data?.new_product_code || newCode;
   showToast('商品を更新しました');
 }
 
