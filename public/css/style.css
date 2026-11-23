@@ -223,6 +223,7 @@ tr:nth-child(2) .pamphlet-value {
     padding: 4mm 4mm;
     width: 100%;
     min-height: 0;
+    zoom: var(--fit-zoom, 1); /* 入りきらないページだけ app.js が縮小率を入れる */
     page-break-after: always;
     break-after: page;
   }

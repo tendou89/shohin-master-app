@@ -525,6 +525,51 @@ function printPamphlet() {
   window.print();
 }
 
+// ===== 印刷時に1ページがA4に入りきらない場合は自動で縮める =====
+// 印刷用の見た目を一瞬だけ画面に当てて各ページの高さを測り、
+// はみ出すページだけ縮小率（--fit-zoom）を設定する。
+const PRINT_AREA_WIDTH_MM = 210 - 8 * 2;   // A4幅 − 左右余白（@page の 8mm）
+const PRINT_AREA_HEIGHT_MM = 297 - 8 * 2;  // A4高さ − 上下余白
+
+function fitPamphletPagesForPrint() {
+  const pages = document.querySelectorAll('#pamphlet-preview-area .pamphlet-page');
+  if (!pages.length) return;
+
+  // 印刷用ルール（@media print の中身）を集める
+  const printCss = [];
+  for (const sheet of document.styleSheets) {
+    let rules;
+    try { rules = sheet.cssRules; } catch (e) { continue; } // 外部CSSは読めないので飛ばす
+    for (const rule of rules) {
+      if (rule.media && /print/.test(rule.media.mediaText)) {
+        for (const r of rule.cssRules) printCss.push(r.cssText);
+      }
+    }
+  }
+
+  const preview = document.getElementById('page-preview');
+  const style = document.createElement('style');
+  style.textContent = printCss.join('\n');
+  const oldWidth = preview.style.width;
+
+  pages.forEach(p => p.style.removeProperty('--fit-zoom'));
+  document.head.appendChild(style);
+  preview.style.width = PRINT_AREA_WIDTH_MM + 'mm';
+
+  const mmToPx = 96 / 25.4;
+  const limit = PRINT_AREA_HEIGHT_MM * mmToPx * 0.98; // 少しだけ余裕を持たせる
+  const zooms = [...pages].map(p => {
+    const h = p.getBoundingClientRect().height;
+    return h > limit ? Math.floor((limit / h) * 1000) / 1000 : 1;
+  });
+
+  style.remove();
+  preview.style.width = oldWidth;
+  pages.forEach((p, i) => { if (zooms[i] < 1) p.style.setProperty('--fit-zoom', zooms[i]); });
+}
+
+window.addEventListener('beforeprint', fitPamphletPagesForPrint);
+
 // ===== おすすめセット管理画面 =====
 async function loadPamphletSetsPage() {
   if (!allCategories.length) await loadCategories();
